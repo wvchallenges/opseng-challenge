@@ -2,20 +2,20 @@
 
 Applicants for the [Operations Engineer career](https://www.waveapps.com/about-us/jobs/operations-engineer/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. This will help the interviewers assess your strengths, and frame the conversation through the interview process. Take as much time as you need, however we ask that you not spend more than a few hours.
 
-Send your submission to [dev.careers@waveapps.com](dev.careers@waveapps.com). Feel free to email [dev.careers@waveapps.com](dev.careers@waveapps.com) if you have any questions.
+Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Feel free to email [ops.careers@waveapps.com](ops.careers@waveapps.com) if you have any questions.
 
 ## Submission Instructions
 
 1. Fork this project on github. You will need to create an account if you don't already have one
 1. Complete the project as described below within your fork
 1. Push all of your changes to your fork on github and submit a pull request.
-1. You should also email [dev.careers@waveapps.com](dev.careers@waveapps.com) and your recruiter to let them know you have submitted a solution. Make sure to include your github username in your email (so we can match applicants with pull requests).
+1. You should also email [ops.careers@waveapps.com](ops.careers@waveapps.com) and your recruiter to let them know you have submitted a solution. Make sure to include your github username in your email (so we can match applicants with pull requests).
 
 ## Alternate Submission Instructions (if you don't want to publicize completing the challenge)
 
 1. Clone the repository
 1. Complete your project as described below within your local repository
-1. Email a patch file to [dev.careers@waveapps.com](dev.careers@waveapps.com)
+1. Email a patch file to [ops.careers@waveapps.com](ops.careers@waveapps.com)
 
 ## Project Description
 
@@ -48,7 +48,7 @@ In developing both the app and Ansible formulas, use GitHub and try to keep a de
 * **Do not check AWS keys or any other secret credentials into Github**
 * Remember to use security groups to restrict port access
 * Prefix all of your AWS resources (when possible) with your first name (example: joanne.domain.com)
-* I should be able to perform the following commands and then interact with a functioning app in my browser. (you can assume we have the AWS Unified CLI):
+* I should be able to perform the following commands and then interact with a functioning app in my browser (you can assume we have the AWS Unified CLI installed):
 
 ```
 $ git clone <your username>/<repo name>
