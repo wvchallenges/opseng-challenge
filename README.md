@@ -1,6 +1,6 @@
 # Wave OpsEng Development Challenge
 
-Applicants for the [Operations Engineer career](https://www.waveapps.com/about-us/jobs/operations-engineer/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. This will help the interviewers assess your strengths, and frame the conversation through the interview process. Take as much time as you need, however we ask that you not spend more than a few hours.
+Applicants for the [Operations Engineer career](https://www.waveapps.com/about-us/jobs/operations-engineer/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. This will help the interviewers assess your strengths, and frame the conversation through the interview process. Take as much time as you need, however we ask that you not spend more than 4-8 hours.
 
 Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Feel free to email [ops.careers@waveapps.com](ops.careers@waveapps.com) if you have any questions.
 
