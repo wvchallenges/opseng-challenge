@@ -7,8 +7,3 @@ This repo include 3 parts
 This can be lanuch aws instances.
 Before u use it.
 Please fill out the access_key='' and secret_key='' vars
-
-
-Test more
-
-test more more
