@@ -13,7 +13,7 @@ Before you use this script, please fill out the 4 and 5 lines as below.
 access_key='Your aws access key'
 secret_key='Your aws secret key'
 
-Also, You need to installed the aws cli utility and configured it.
+Also, You need to installed the git, ansible, aws cli utility and configured it.
 
 you can also set the environment variable in the top of aws-flask.sh.
 
@@ -45,7 +45,7 @@ If the ec2 instance is already configured, ansible-playbook will just fetch the 
 
 ###How to set up by one step
 
-cd /tmp && git clone https://github.com/clover1983/opseng-challenge.git && cd /tmp/opseng-challenge && chmod u+x aws-flask.sh && sed -i "s/access_key=''/access_key='Your Key'/g" aws-flask.sh && sed -i "s/secret_key=''/secret_key='Your Key'/g" aws-flask.sh && ./aws-flask.sh
+cd /tmp && git clone https://github.com/clover1983/opseng-challenge.git && cd /tmp/opseng-challenge && chmod u+x aws-flask.sh && sed -i "s/access_key=''/access_key='Your Key'/g" aws-flask.sh && sed -i "s/secret_key=''/secret_key='Your Key'/g" aws-flask.sh && sh -x ./aws-flask.sh
 
 ###How to deploy by ansible
 

@@ -6,6 +6,7 @@
      - python-pip
      - python-virtualenv
      - python-httplib2
+     - git
 
 - name: Create a virtualenv dev directory if it doesn't exist
   file: path=/var/www/html/logs state=directory
@@ -32,15 +33,15 @@
   ignore_errors: True
 
 - name: Test flask app installed 2
-  command: test -d /var/www/html/opseng-challenge/app
+  command: test ! -d /var/www/html/opseng-challenge/app
   register: result4
   ignore_errors: True
 
 - name: If not installed, flush install flask
   command: git clone https://github.com/clover1983/opseng-challenge.git
   args:
-    chdir: /var/www/html/
-  when: result4|failed
+    chdir: /var/www/html
+  when: result4|success
   notify:
     - Use virtualenv
     - Activate virtualenv
