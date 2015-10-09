@@ -1,0 +1,20 @@
+server {
+    listen 80;
+    server_name localhost;
+
+    root  /var/www/html/opseng-challenge/app;
+
+    access_log /var/www/html/logs/access.log;
+    error_log /var/www/html/logs/error.log;
+
+    location / {
+            try_files $uri @gunicorn_proxy;
+    }
+
+    location @gunicorn_proxy {
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Host $http_host;
+            proxy_redirect off;
+            proxy_pass http://127.0.0.1:8000;
+        }
+}

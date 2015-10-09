@@ -1,0 +1,41 @@
+- name: Use virtualenv
+  command: virtualenv hello
+  args:
+    chdir: /var/www/html/opseng-challenge/app
+
+- name: Activate virtualenv
+  shell: . hello/bin/activate
+  args:
+    chdir: /var/www/html/opseng-challenge/app
+
+- name: Install flask
+  command: pip install flask
+  args:
+    chdir: /var/www/html/opseng-challenge/app
+
+- name: Install gunicorn
+  command: pip install gunicorn
+  args:
+    chdir: /var/www/html/opseng-challenge/app
+
+- name: Install nginx
+  apt: name=nginx-full state=present
+
+- name: Change nginx config
+  template: src=default dest=/etc/nginx/sites-available/default
+
+- name: Start nginx service
+  service: name=nginx state=started
+
+- name: Activate virtualenv 2
+  shell: . hello/bin/activate
+  args:
+    chdir: /var/www/html/opseng-challenge/app
+
+- name: Start gunicorn service
+  command: gunicorn hello:app --daemon
+  args:
+    chdir: /var/www/html/opseng-challenge/app
+
+- name: Retart nginx service 2
+  service: name=nginx state=restarted

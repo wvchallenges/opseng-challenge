@@ -1,0 +1,6 @@
+- name: Wave OpsEng Development Challenge
+  hosts: lilyopseng
+  user: ubuntu
+
+  roles:
+    - lilyopseng

@@ -1,0 +1,55 @@
+- name: Install dependence package
+  apt: name={{ item }} state=present
+  with_items:
+     - python
+     - python-dev
+     - python-pip
+     - python-virtualenv
+     - python-httplib2
+
+- name: Create a virtualenv dev directory if it doesn't exist
+  file: path=/var/www/html/logs state=directory
+
+- name: Test flask app installed 1
+  command: test -d /var/www/html/opseng-challenge/app
+  register: result
+  ignore_errors: True
+
+- name: If installed, get the latest version
+  command: git pull
+  args:
+    chdir: /var/www/html/opseng-challenge
+  when: result|success
+
+- name: Gunicorn reload when flaskapp update
+  shell: ps -ef | grep gunicorn | awk '{print $2}' | head -1 | xargs kill -HUP
+  args:
+    chdir: /var/www/html/opseng-challenge/app
+  ignore_errors: True
+
+- name: Nginx restart when gunicorn reload 
+  service: name=nginx state=restarted
+  ignore_errors: True
+
+- name: Test flask app installed 2
+  command: test -d /var/www/html/opseng-challenge/app
+  register: result4
+  ignore_errors: True
+
+- name: If not installed, flush install flask
+  command: git clone https://github.com/clover1983/opseng-challenge.git
+  args:
+    chdir: /var/www/html/
+  when: result4|failed
+  notify:
+    - Use virtualenv
+    - Activate virtualenv
+    - Install flask
+    - Install gunicorn
+    - Install nginx
+    - Change nginx config
+    - Start nginx service
+    - Activate virtualenv 2
+    - Start gunicorn service
+    - Retart nginx service 2
+
