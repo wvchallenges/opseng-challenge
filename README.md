@@ -44,7 +44,7 @@ If the ec2 instance is already configured, ansible-playbook will just fetch the 
 
 
 ###How to set up by one step
-cd /tmp && git clone https://github.com/wvchallenges/opseng-challenge.git && cd /tmp/opseng-challenge && chmod u+x aws-flask.sh && ./aws-flask.sh
+cd /tmp && git clone https://github.com/clover1983/opseng-challenge.git && cd /tmp/opseng-challenge && chmod u+x aws-flask.sh && ./aws-flask.sh
 
 
 

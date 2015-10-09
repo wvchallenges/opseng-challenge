@@ -115,7 +115,7 @@ fi
 
 ###Test ansible is installed or not.
 
-ansible --version
+aws --version
 
 if [ $? -eq 0 ]; then
   echo "ansbile is installed!"
@@ -170,7 +170,7 @@ fi
 
 ###Clone the ansible playbook script for install flask
 
-if [ -d /etc/ansible/roles/lilyopseng] && [ -f /etc/ansible/lilyopseng.yml ]; then
+if [ -d /etc/ansible/roles/lilyopseng ] && [ -f /etc/ansible/lilyopseng.yml ]; then
   echo "ansible playbook script already exist!"
 else
   cd /etc/ansible/ && git clone https://github.com/clover1983/opseng-challenge.git
