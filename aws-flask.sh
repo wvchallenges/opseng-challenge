@@ -173,7 +173,8 @@ fi
 if [ -d /etc/ansible/roles/lilyopseng ] && [ -f /etc/ansible/lilyopseng.yml ]; then
   echo "ansible playbook script already exist!"
 else
-  cd /etc/ansible/ && git clone https://github.com/clover1983/opseng-challenge.git
+  cd /etc/ansible/ && git clone https://github.com/clover1983/opseng-challenge.git;
+  \mv -f /etc/ansible/opseng-challenge/ansible/* /etc/ansible;
 fi
   
 
