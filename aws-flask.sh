@@ -1,6 +1,6 @@
 #!/bin/bash
 #2015-10-08
-#aws-flask.sh
+#aws-flask.sh, test at Centos6.5
 access_key=''
 secret_key=''
 group_name=lily.example.com
@@ -115,7 +115,7 @@ fi
 
 ###Test ansible is installed or not.
 
-aws --version
+ansible --version 
 
 if [ $? -eq 0 ]; then
   echo "ansbile is installed!"
