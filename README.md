@@ -40,7 +40,7 @@ In developing both the app and Ansible formulas, use GitHub and try to keep a de
 1. A Github repo containing the flask app
 1. A Github repo containing the Ansible playbooks (don’t check in the key/secret or pem file we give you).
 1. A bash script called `aws-flask.sh` that will:
-    * Launch the EC2 server using aws cli utilities
+    * Launch the EC2 server using aws cli utilities or another tool of your choice
     * Begin the configuration management / bootstrapping of the server using an Ansible playbook
 
 ### Notes
