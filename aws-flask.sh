@@ -31,6 +31,8 @@ aws ec2 authorize-security-group-ingress --group-name rvanoo-web --protocol tcp 
 
 echo create EC2 instance
 INSTANCE_ID=`aws ec2 run-instances --image-id ami-b82176d2 --count 1 --key-name rvanoo-key-pair --instance-type t1.micro --associate-public-ip-address | jq -r .Instances[].InstanceId`
+AZ=`aws ec2 describe-instances --instance-id $INSTANCE_ID | jq -r .Reservations[].Instances[].Placement.AvailabilityZone`
+echo "instance $INSTANCE_ID created in the $AZ availability zone" 
 
 echo -n "waiting for instance to finish initializing "
 while true; do
