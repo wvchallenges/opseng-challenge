@@ -1,0 +1,16 @@
+---
+  - hosts: all
+
+    vars:
+      user: www-data
+      worker_processes: 4
+      worker_connections: 100
+      pid: /var/run/nginx.pid
+
+    tasks:
+      - include: tasks/nginx-install.yml
+      - include: tasks/app-install.yml
+
+    handlers:
+      - include: handlers/nginx.yml
+      - include: handlers/supervisor.yml

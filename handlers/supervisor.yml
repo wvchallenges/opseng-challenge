@@ -1,0 +1,3 @@
+---
+  - name: reload supervisor
+    action: service name=supervisor pattern=/etc/init.d/supervisor state=restarted enabled=yes

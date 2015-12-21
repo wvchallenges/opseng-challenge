@@ -1,0 +1,25 @@
+---
+  - name: install git
+    action: apt name=git
+
+  - name: install supervisord
+    action: apt name=supervisor
+
+  - name: install pip
+    action: apt name=python-pip
+
+  - name: install gunicorn
+    action: pip name=gunicorn
+
+  - name: install flask
+    action: pip name=flask version=0.10.1
+
+  - name: install app
+    git: repo=https://github.com/rvanoo/opseng-challenge.git dest=/srv/rvanoo-app
+    notify:
+      - reload supervisor
+
+  - name: write supervisord gunicorn.conf
+    action: copy src=config/gunicorn.conf dest=/etc/supervisor/conf.d/gunicorn.conf
+    notify:
+      - reload supervisor
