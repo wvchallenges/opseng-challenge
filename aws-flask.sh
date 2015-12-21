@@ -10,18 +10,19 @@ if [ -z "$AWS_SECRET_ACCESS_KEY" ]; then
 fi
 
 # Run these steps as-needed to install jq, pip, wget, boto and awscli
-# sudo apt-get -yV install jq python-pip software-properties-common wget
-# sudo apt-add-repository -y ppa:ansible/ansible
-# sudo apt-get update -qq
-# sudo pip install awscli boto
-# sudo apt-get install -y ansible
-
-# capture own IP address
-MY_IP=`wget http://ipinfo.io/ip -qO -`
+echo installing prerequisites ...
+sudo apt-get -Vy install jq python-pip software-properties-common wget 2>&1 >> install.log
+sudo pip install awscli boto 2>&1 >> install.log
+sudo apt-add-repository -y ppa:ansible/ansible 2>&1 >> install.log
+sudo apt-get update -qq
+sudo apt-get install -Vy ansible 2>&1 >> install.log
 
 echo create key pair
-aws ec2 create-key-pair --key-name rvanoo-key-pair | jq -r .KeyMaterial > ~/.ssh/rvanoo-ec2-key.pem
-chmod 600 ~/.ssh/rvanoo-key.pem
+aws ec2 create-key-pair --key-name rvanoo-key-pair | jq -r .KeyMaterial > ~/.ssh/rvanoo-aws-ec2-key.pem
+chmod 600 ~/.ssh/rvanoo-aws-ec2-key.pem
+
+echo capture own IP address
+MY_IP=`wget http://ipinfo.io/ip -qO -`
 
 echo "create security group and open SSH and HTTP to own IP address ($MY_IP) only"
 aws ec2 create-security-group --group-name rvanoo-web --description 'ssh and http access' > /dev/null
@@ -44,8 +45,29 @@ done
 echo instance in 'running' state
 
 PUBLIC_IP=`aws ec2 describe-instances --instance-ids $INSTANCE_ID | jq -r .Reservations[].Instances[].PublicIpAddress`
+echo "found public IP address ($PUBLIC_IP)"
+
+# add security group to instance
 aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID --groups `aws ec2 describe-security-groups | jq -r .SecurityGroups[].GroupId` > /dev/null
-aws ec2 create-tags --resources $INSTANCE_ID --tags Key=Name,Value=rvanoo-web > /dev/null
+
+# set Name tag on instance
+SECURITY_GROUP_ID=`aws ec2 describe-security-groups --group-name 'default' | jq -r .SecurityGroups[].GroupId`
+aws ec2 create-tags --resources $INSTANCE_ID $SECURITY_GROUP_ID --tags Key=Name,Value=rvanoo-web > /dev/null
+
+echo -n "waiting for instance to start SSH server "
+while true; do
+    echo -n .
+    sleep 10
+    nmap $PUBLIC_IP -PN -p ssh | grep -q 'open'
+    RESULT=$?
+    if [ "$RESULT" -eq 0 ]; then
+        echo
+        break
+    fi
+done
 
 echo running playbook on new instance at $PUBLIC_IP ...
-ansible-playbook -i ec2.py --private-key=~/.ssh/rvanoo-key.pem -u ubuntu -b $PUBLIC_IP -m ping
+export ANSIBLE_HOST_KEY_CHECKING=False
+ansible-playbook -i ec2.py --private-key=~/.ssh/rvanoo-aws-ec2-key.pem -u ubuntu -b deploy.yml
+
+echo "Flask application is running at http://$PUBLIC_IP"
