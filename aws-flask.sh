@@ -53,7 +53,7 @@ echo "found public IP address ($PUBLIC_IP)"
 aws ec2 modify-instance-attribute --instance-id $INSTANCE_ID --groups `aws ec2 describe-security-groups | jq -r .SecurityGroups[].GroupId` > /dev/null
 
 # set Name tag on instance
-SECURITY_GROUP_ID=`aws ec2 describe-security-groups --group-name 'default' | jq -r .SecurityGroups[].GroupId`
+SECURITY_GROUP_ID=`aws ec2 describe-security-groups --group-name 'rvanoo-web' | jq -r .SecurityGroups[].GroupId`
 aws ec2 create-tags --resources $INSTANCE_ID $SECURITY_GROUP_ID --tags Key=Name,Value=rvanoo-web > /dev/null
 
 echo -n "waiting for instance to start SSH server "
