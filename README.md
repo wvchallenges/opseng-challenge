@@ -25,7 +25,7 @@ First, create the Flask app. There’s a [QuickStart Guide to working with Flask
 
 Next, we need to deploy this. Developers should be able to deploy the blog app remotely using a combination of Ansible playbooks and/or command line tools.
 
-In developing both the app and Ansible formulas, use GitHub and try to keep a decent history of how you approached the project.
+In developing both the app and Ansible playbooks, use GitHub and try to keep a decent history of how you approached the project.
 
 **Here are the specs you want:**
 
