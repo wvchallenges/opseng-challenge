@@ -1,6 +1,6 @@
-# Wave OpsEng Development Challenge
+# Wave Opserations Engineering Development Challenge
 
-Applicants for the [Operations Engineer career](https://www.waveapps.com/about-us/jobs/operations-engineer/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. This will help the interviewers assess your strengths, and frame the conversation through the interview process. Take as much time as you need, however we ask that you not spend more than 4-8 hours.
+Applicants for the [Operations Engineering team](https://wave.bamboohr.co.uk/jobs/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. This will help the interviewers assess your strengths, and frame the conversation through the interview process. Take as much time as you need, however we ask that you not spend more than 4-6 hours.
 
 Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Feel free to email [ops.careers@waveapps.com](ops.careers@waveapps.com) if you have any questions.
 
@@ -19,11 +19,11 @@ Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Fe
 
 ## Project Description
 
-Imagine you’re starting a blog called Opsgadget. You’re going to be writing articles about the latest and greatest in IT operations. The first thing you decide to do is to make a very simple blog using Python and Flask. Your team of developers are going to be adding features to the blog. To help them speed their releases to Production, you also want to template and automate building an EC2 server. You do this by creating configuration formulas that your servers can use to automatically install the needed software to run Python and Flask, and pull the latest Flask application repo to the server.
+Imagine you’re starting a blog called Opsgadget. You’re going to be writing articles about the latest and greatest in IT operations. The first thing you decide to do is to make a very simple blog using Python and Flask. Your team of developers are going to be adding features to the blog. To help them speed their releases to production, you also want to template and automate building an EC2 server. You do this by creating configuration formulas that your servers can use to automatically install the needed software to run Python and Flask, and pull the latest Flask application repo to the server.
 
-First, create the Flask app. This is the easy part! There’s a [QuickStart Guide to working with Flask](http://flask.pocoo.org/docs/quickstart/). Just follow the directions, and don’t worry about making your blog any fancier than what’s described in that documentation; getting your blog to display “hello world” is fine.
+First, create the Flask app. There’s a [QuickStart Guide to working with Flask](http://flask.pocoo.org/docs/quickstart/). Folow the directions to get Flask running - an unstyled page displaying "Hello World" is fine for this. 
 
-While the developers are writing code, you want to allow them to deploy code themselves using Ansible. They should be able to deploy the blog app remotely using a combination of Ansible playbooks and/or command line tools (bash + aws cli).
+Next, we need to deploy this. Developers should be able to deploy the blog app remotely using a combination of Ansible playbooks and/or command line tools.
 
 In developing both the app and Ansible formulas, use GitHub and try to keep a decent history of how you approached the project.
 
@@ -40,7 +40,7 @@ In developing both the app and Ansible formulas, use GitHub and try to keep a de
 1. A Github repo containing the flask app
 1. A Github repo containing the Ansible playbooks (don’t check in the key/secret or pem file we give you).
 1. A bash script called `aws-flask.sh` that will:
-    * Launch the EC2 server using aws cli utilities or another tool of your choice
+    * Launch the EC2 server using the tool of your choice
     * Begin the configuration management / bootstrapping of the server using an Ansible playbook
 
 ### Notes
