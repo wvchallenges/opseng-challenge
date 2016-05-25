@@ -23,9 +23,9 @@ Imagine you’re starting a blog called Opsgadget. You’re going to be writing 
 
 First, create the Flask app. There’s a [QuickStart Guide to working with Flask](http://flask.pocoo.org/docs/quickstart/). Folow the directions to get Flask running - an unstyled page displaying "Hello World" is fine for this. 
 
-Next, we need to deploy this. Developers should be able to deploy the blog app remotely using a combination of Ansible playbooks and/or command line tools.
+Next, we need to deploy this. Developers should be able to deploy the blog app remotely using a combination of configuration management and/or command line tools.
 
-In developing both the app and Ansible playbooks, use GitHub and try to keep a decent history of how you approached the project.
+In developing both the app and tooling, use GitHub and try to keep a decent history of how you approached the project.
 
 **Here are the specs you want:**
 
@@ -35,20 +35,22 @@ In developing both the app and Ansible playbooks, use GitHub and try to keep a d
 * Python: `2.7`
 * Flask: `0.10.1`
 
+We use Ansible for our configuration management tooling, but feel free to use the one you're most familiar with.
+
 ### Deliverables
 
 1. A Github repo containing the flask app
-1. A Github repo containing the Ansible playbooks (don’t check in the key/secret or pem file we give you).
+1. A Github repo containing the configration management scripts (don’t check in the key/secret or pem file we give you).
 1. A bash script called `aws-flask.sh` that will:
     * Launch the EC2 server using the tool of your choice
-    * Begin the configuration management / bootstrapping of the server using an Ansible playbook
+    * Begin the configuration management / bootstrapping of the server using the tool of your choice
 
 ### Notes
 
 * **Do not check AWS keys or any other secret credentials into Github**
 * Remember to use security groups to restrict port access
 * Prefix all of your AWS resources (when possible) with your first name (example: joanne.domain.com)
-* I should be able to perform the following commands and then interact with a functioning app in my browser (you can assume we have the AWS Unified CLI installed):
+* I should be able to perform the following commands and then interact with a functioning app in my browser (you can assume we have the `awscli` Python package installed):
 
 ```
 $ git clone <your username>/<repo name>
