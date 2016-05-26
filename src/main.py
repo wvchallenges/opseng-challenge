@@ -1,5 +1,5 @@
 #!./venv/bin/python2
-# A basic hello world
+# A basic hello world.
 # All my code is in python3 :(
 
 from flask import Flask,request
