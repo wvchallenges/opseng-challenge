@@ -1,0 +1,7 @@
+- ec2:
+	key_name: adiana
+	instance_type: t1.micro
+	image: ami-86e0ffe7
+	group: adiana
+	wait: yes
+	assign_public_ip: yes
