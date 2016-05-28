@@ -1,6 +1,6 @@
+EPOCH=$(shell date +%s )
+NAME=adiana/opseng
+
 build:
-	cd docker; docker build -t="adiana/opseng" .
-
-
-run-deploy: build-deploy
-	docker run -P -t -i adiana/opseng
+	cd docker; docker build -t=${NAME}:${EPOCH} .
+	docker save --output="image.tar" ${NAME}:${EPOCH}
