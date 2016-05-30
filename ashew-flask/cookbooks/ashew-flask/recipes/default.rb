@@ -15,7 +15,27 @@ bash 'install_flask' do
 	code <<-EOH
 		pip install 'Flask==0.10.1'
 		EOH
-  ignore_failure
+end
+
+directory '/var/www/ashew-flask' do
+  owner 'www-data'
+  group 'www-data'
+  mode '0755'
+  recursive true
+  action :create
+end
+
+git '/tmp/ashew-flask' do
+  repository 'git://github.com/ashew/opseng-challenge.git'
+  reference 'master'
+  action :sync
+end
+
+bash 'install_ashew-flask_app' do
+  cwd '/var/www/ashew-flask'
+  code <<-EOH
+    cp -r /tmp/ashew-flask/python-app/* ./
+    EOH
 end
 
 cookbook_file '/etc/gunicorn.d/ashew-flask.conf' do
