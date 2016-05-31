@@ -4,3 +4,4 @@ __pycache__/
 *.kate-swp
 venv/
 *.pyc
+*.tar
