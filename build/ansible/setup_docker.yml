@@ -15,7 +15,7 @@
       become: True
     
     - name: Push docker image to system
-      copy: src=../opsgadget.tar dest=/home/ubuntu/opsgadget.tar
+      copy: src=../docker/opsgadget.tar dest=/home/ubuntu/opsgadget.tar
     
     - name: Load docker image
       become: True
