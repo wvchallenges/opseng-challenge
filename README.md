@@ -29,9 +29,12 @@ The OS used for hosting and the techniques used to accomplish this are up to you
 
 ### Deliverables
 
-1. A bash script called `aws-app.sh` that will:
-    * Launch the appropriate AWS services using the tool of your choice
-    * Begin the configuration of the server using the tool of your choice
+A bash script called `aws-app.sh` that will:
+   * Launch the appropriate AWS services using the tool of your choice
+   * Begin the configuration of the server using the tool of your choice
+   * Output a URL at the end where we can visit the app
+
+You're welcome to include other files in your repo if needed, but `aws-app.sh` is the only one we'll run.
 
 #### Notes
 
