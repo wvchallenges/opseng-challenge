@@ -4,16 +4,16 @@ Applicants for the [Operations Engineering team](https://wave.bamboohr.co.uk/job
 
 The purpose of this exercise is to create something that we can discuss during the on-site interview, and that's representative of the kind of things we do here on a daily basis.
 
-There isn't a hard deadline for this exercise; take as long as you need to complete it. However, in terms of total time spent actively working on the challenge, we ask that you not spend more than a few hours, as we value your time and are happy to leave things open to discussion in the onsite interview.
+There isn't a hard deadline for this exercise; take as long as you need to complete it. However, in terms of total time spent actively working on the challenge, we ask that you not spend more than a few hours, as we value your time and expect to leave things open to discussion in the on-site interview.
 
 Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Feel free to email [ops.careers@waveapps.com](ops.careers@waveapps.com) if you have any questions.
 
 ## Submission Instructions
 
-1. Fork this project on github. You will need to create an account if you don't already have one
+1. Fork this project on GitHub -  you'll need to create an account if you don't already have one
 1. Complete the project as described below within your fork
-1. Push all of your changes to your fork on github and submit a pull request.
-1. Email your contact at Wave to let them know you have submitted a solution. Make sure to include your github username in your email (so we can match applicants with pull requests).
+1. Push all of your changes to your fork on GitHub and submit a pull request
+1. Email your contact at Wave to let them know you have submitted a solution, and make sure to include your GitHub username in your email (so we can match applicants with pull requests)
 
 ## Alternate Submission Instructions (if you don't want to publicize completing the challenge)
 
