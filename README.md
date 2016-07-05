@@ -1,6 +1,10 @@
 # Wave Opserations Engineering Development Challenge
 
-Applicants for the [Operations Engineering team](https://wave.bamboohr.co.uk/jobs/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. This will help the interviewers assess your strengths, and frame the conversation through the interview process. Take as much time as you need, however we ask that you not spend more than 4-6 hours.
+Applicants for the [Operations Engineering team](https://wave.bamboohr.co.uk/jobs/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. 
+
+The purpose of this exercise is to create something that we can discuss during the on-site interview, and that's representative of the kind of things we do here on a daily basis.
+
+There isn't a hard deadline for this exercise; take as long as you need to complete it. However, in terms of total time spent actively working on the challenge, we ask that you not spend more than a few hours, as we value your time and are happy to leave things open to discussion in the onsite interview.
 
 Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Feel free to email [ops.careers@waveapps.com](ops.careers@waveapps.com) if you have any questions.
 
@@ -9,7 +13,7 @@ Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Fe
 1. Fork this project on github. You will need to create an account if you don't already have one
 1. Complete the project as described below within your fork
 1. Push all of your changes to your fork on github and submit a pull request.
-1. You should also email [ops.careers@waveapps.com](ops.careers@waveapps.com) and your recruiter to let them know you have submitted a solution. Make sure to include your github username in your email (so we can match applicants with pull requests).
+1. Email your contact at Wave to let them know you have submitted a solution. Make sure to include your github username in your email (so we can match applicants with pull requests).
 
 ## Alternate Submission Instructions (if you don't want to publicize completing the challenge)
 
@@ -19,52 +23,30 @@ Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Fe
 
 ## Project Description
 
-Imagine you’re starting a blog called Opsgadget. You’re going to be writing articles about the latest and greatest in IT operations. The first thing you decide to do is to make a very simple blog using Python and Flask. Your team of developers are going to be adding features to the blog. To help them speed their releases to production, you also want to template and automate building an EC2 server. You do this by creating configuration formulas that your servers can use to automatically install the needed software to run Python and Flask, and pull the latest Flask application repo to the server.
+There's a trivial Python app available [here](https://github.com/wvchallenges/opseng-challenge-app). Your task is to host this app on AWS, using the current `HEAD` of the `master` branch as of when we test your submission.
 
-First, create the Flask app. There’s a [QuickStart Guide to working with Flask](http://flask.pocoo.org/docs/quickstart/). Folow the directions to get Flask running - an unstyled page displaying "Hello World" is fine for this. 
-
-Next, we need to deploy this. Developers should be able to deploy the blog app remotely using a combination of configuration management and/or command line tools.
-
-In developing both the app and tooling, use GitHub and try to keep a decent history of how you approached the project.
-
-**Here are the specs you want:**
-
-* Instance Type: `t1.micro`
-* OS: `Ubuntu Server 14.04 64-bit`
-* App Server: `Gunicorn/Nginx`
-* Python: `2.7`
-* Flask: `0.10.1`
-
-We use Ansible for our configuration management tooling, but feel free to use the one you're most familiar with.
+The OS used for hosting and the techniques used to accomplish this are up to you. Once you're done, please submit a paragraph or two in your `README` about what you're particularly proud of in your implementation, and why. Be deliberate in your choices and design, as we'll use them as a starting point for our discussions.   
 
 ### Deliverables
 
-1. A Github repo containing the flask app
-1. A Github repo containing the configration management scripts (don’t check in the key/secret or pem file we give you).
-1. A bash script called `aws-flask.sh` that will:
-    * Launch the EC2 server using the tool of your choice
-    * Begin the configuration management / bootstrapping of the server using the tool of your choice
+1. A bash script called `aws-app.sh` that will:
+    * Launch the appropriate AWS services using the tool of your choice
+    * Begin the configuration of the server using the tool of your choice
 
-### Notes
+#### Notes
 
-* **Do not check AWS keys or any other secret credentials into Github**
-* Remember to use security groups to restrict port access
+* **Do not check AWS keys or any other secret credentials into git**
 * Prefix all of your AWS resources (when possible) with your first name (example: joanne.domain.com)
-* I should be able to perform the following commands and then interact with a functioning app in my browser (you can assume we have the `awscli` Python package installed):
-
-```
-$ git clone <your username>/<repo name>
-$ cd <repo name>
-$ ./aws-flask.sh
-
-...
-
-Flask application is running at http://<application ip>.
-```
 
 ## Evaluation
 
-Evaluation of your submission will be based on the following criteria.
+We'll do the following, using on a stock OSX machine (with the `awscli` Python package installed and appropriate AWS environment variables set):
+```
+$ git clone <your username>/<repo name>
+$ cd <repo name>
+$ ./aws-app.sh
+```
+We expect that this will output a URL at the end, and we'll then visit that URL to confirm it has the output generated by the current `HEAD` of the `master` branch of the repo linked to above. We'll evaluate your submission based on the following criteria:
 
 1. Did your application fulfill the basic requirements?
 1. Did you document the method for setting up and running your application?
