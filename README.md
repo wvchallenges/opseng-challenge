@@ -43,7 +43,7 @@ You're welcome to include other files in your repo if needed, but `aws-app.sh` i
 
 ## Evaluation
 
-We'll do the following, using on a stock OSX machine (with the `awscli` Python package installed and appropriate AWS environment variables set):
+We'll do the following, using on a stock OSX machine with the `awscli` Python package installed and appropriate AWS environment variables set:
 ```
 $ git clone <your username>/<repo name>
 $ cd <repo name>
