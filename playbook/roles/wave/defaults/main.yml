@@ -1,0 +1,5 @@
+---
+# defaults file for wage
+wave_project: "https://github.com/wvchallenges/opseng-challenge-app.git"
+wave_directory: "/usr/local/wvchallenges"
+wave_requirements: "{{ wave_directory }}/requirements.txt"
