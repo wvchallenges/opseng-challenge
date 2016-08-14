@@ -1,0 +1,9 @@
+---
+# Install and run wave APP
+- name: Install and run wave APP
+  hosts: local
+  become: True
+  become_user: root
+  roles:
+    - wave
+    - nginx

@@ -1,0 +1,22 @@
+---
+# tasks file for wage
+- name: Install dependencies
+  apt: name=python-pip state=latest
+
+- name: Create APP directory
+  file: path={{ wave_project }} state=directory mode=0755
+
+- name: Download Project
+  git: repo={{ wave_project }} dest={{ wave_directory }}
+
+- name: Install APP requirements
+  pip: requirements={{wave_requirements}}
+
+- name: Copy upstart file
+  copy: src=wave.conf dest=/etc/init/wave.conf owner=root group=root mode=0644
+
+- name: Load config
+  command: initctl reload-configuration
+
+- name: Enable service
+  service: name=wave enabled=yes state=started

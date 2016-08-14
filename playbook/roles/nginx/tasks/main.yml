@@ -1,0 +1,8 @@
+---
+# tasks file for nginx
+- name: Install nginx
+  apt: name=nginx state=latest
+
+- name: Copy nginx configuration for wave app
+  copy: src=wave.conf dest=/etc/nginx/conf.d/wave.conf
+  notify: restart nginx
