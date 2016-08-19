@@ -1,4 +1,4 @@
-# Wave Opserations Engineering Development Challenge
+# Wave Operations Engineering Development Challenge
 
 Applicants for the [Operations Engineering team](https://wave.bamboohr.co.uk/jobs/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. 
 
