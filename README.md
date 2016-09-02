@@ -204,5 +204,3 @@ INFO: Program has ended.
 ## Conclusion
 
 I hope you enjoy it.
-
-The-Binh
