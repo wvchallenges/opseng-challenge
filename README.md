@@ -6,7 +6,7 @@ The purpose of this exercise is to create something that we can discuss during t
 
 There isn't a hard deadline for this exercise; take as long as you need to complete it. However, in terms of total time spent actively working on the challenge, we ask that you not spend more than a few hours, as we value your time and expect to leave things open to discussion in the on-site interview.
 
-Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Feel free to email [ops.careers@waveapps.com](ops.careers@waveapps.com) if you have any questions.
+Send your completed submission to your contact at Wave. Feel free to email [ops.careers@waveapps.com](ops.careers@waveapps.com) if you have any questions.
 
 ## Submission Instructions
 
@@ -23,7 +23,7 @@ Send your submission to [ops.careers@waveapps.com](ops.careers@waveapps.com). Fe
 
 ## Project Description
 
-There's a trivial Python app available [here](https://github.com/wvchallenges/opseng-challenge-app). Your task is to host this app on AWS, using the current `HEAD` of the `master` branch as of when we test your submission.
+There's a basic Python app available [here](https://github.com/wvchallenges/opseng-challenge-app). Your task is to host this app on AWS, using the current `HEAD` of the `master` branch as of when we test your submission.
 
 The OS used for hosting, and the tools & techniques used to accomplish this are up to you. Once you're done, please submit a paragraph or two in your `README` about what you're particularly proud of in your implementation, and why. Be deliberate in your choices and design, as we'll use them as a starting point for our discussions.   
 
@@ -52,7 +52,7 @@ When we're evaluating your submission, some of the questions we'll be asking are
 * Does the working app reflect what's at the `HEAD` of the `master` branch right now, or at a point in the past? 
 * If we wanted to push out an updated version of the app's code, how much work would that be? 
 * Which application(s) and OS were chosen to host the app, and why?
-* Which hosting strategy was selected, and did the candidate had a good reason to pick that one?
+* Which hosting strategy was selected, and did you have a good reason to pick that one?
 * Are the decisions and strengths/weaknesses of this strategy discussed?
-* How much of the hosting infrastructure is created when calling `aws-app.sh`, and how much does the script assume already exists?
+* How much of the hosting infrastructure is created when calling `aws-app.sh`, and how much does the script assume already exists or is created by hand in the console?
 
