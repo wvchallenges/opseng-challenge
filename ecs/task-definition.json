@@ -2,8 +2,8 @@
     "family": "mschurenko-test",
     "containerDefinitions": [
         {
-            "name": "test",
-            "image": "505545132866.dkr.ecr.us-east-1.amazonaws.com/mschurenko-challenge-app:2",
+            "name": "",
+            "image": "",
             "cpu": 0,
             "memory": 128,
             "portMappings": [
@@ -16,7 +16,7 @@
             "essential": true,
             "privileged": true,
             "dockerLabels": {
-                "git_sha": "abc"
+                "git_sha": ""
             }
         }
     ]

@@ -1,0 +1,23 @@
+{
+    "containerDefinitions": [
+        {
+            "name": "test", 
+            "image": "myrepo", 
+            "dockerLabels": {
+                "git_sha": "2cd34ac"
+            }, 
+            "cpu": 0, 
+            "portMappings": [
+                {
+                    "protocol": "tcp", 
+                    "containerPort": 8000, 
+                    "hostPort": 0
+                }
+            ], 
+            "memory": 128, 
+            "privileged": true, 
+            "essential": true
+        }
+    ], 
+    "family": "mschurenko-test"
+}

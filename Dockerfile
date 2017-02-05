@@ -1,7 +1,7 @@
 FROM alpine:3.5
 MAINTAINER matt.schurenko@gmail.com
 
-RUN apk add --update bash git py2-pip
+RUN apk add --update py2-pip
 
 ARG repo
 ARG version
