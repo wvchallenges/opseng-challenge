@@ -1,0 +1,12 @@
+service:
+  Type: AWS::ECS::Service
+  Properties:
+    Role:
+      Ref: ECSServiceRole
+    TaskDefinition:
+    DesiredCount: 1
+    LoadBalancers:
+    - TargetGroupArn:
+      ContainerPort: 80
+      ContainerName: sample-app
+    Cluster:
