@@ -37,6 +37,7 @@ set -eu
 
 # global vars
 USAGE="\nUsage:$0 [--destroy|-d]\n"
+CFN_STACK_NAME="mschurenko-VPC"
 #GIT_REPO="https://github.com/wvchallenges/opseng-challenge-app.git"
 GIT_REPO="https://github.com/mschurenko/opseng-challenge-app.git"
 REPO_DIR="opseng-challenge-app"
@@ -50,7 +51,6 @@ ECS_DESIRED_COUNT=1
 ECS_TASK_FAMILY="mschurenko-task"
 ECS_CONTAINER_PORT=8000
 IAM_ROLE="arn:aws:iam::505545132866:role/ecsServiceRole"
-DOCKER_REG="505545132866.dkr.ecr.us-east-1.amazonaws.com/mschurenko-challenge-app"
 
 export AWS_DEFAULT_OUTPUT=text
 
@@ -96,8 +96,8 @@ sanity_checks() {
 }
 
 get_stack_status() {
-    local stack_name=$1
-    aws cloudformation describe-stacks --stack-name $stack_name 2>/dev/null\
+    local CFN_STACK_NAME=$1
+    aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME 2>/dev/null\
     |awk '/^STACKS/ {print $NF}'
 }
 
@@ -138,8 +138,7 @@ BASE_DIR=$(pwd)
 #----------------------
 p_stage "Infrastructure"
 
-stack_name="mschurenko-VPC"
-stack_status=$(get_stack_status $stack_name)
+stack_status=$(get_stack_status $CFN_STACK_NAME)
 
 echo "Checking if we need to build infrastructure..."
 
@@ -148,19 +147,24 @@ echo "Checking if we need to build infrastructure..."
 #     aws cloudformation validate-template --template-body file://./vpc.yaml
 #     aws cloudformation update-stack \
 #     --template-body file://./vpc.yaml \
-#     --stack-name $stack_name \
+#     --stack-name $CFN_STACK_NAME \
 #     --capabilities CAPABILITY_IAM \
-#     --tags Key=Name,Value=$stack_name
-#     echo "Waiting for stack update on $stack_name to complete..."
-#     aws cloudformation wait stack-update-complete --stack-name $stack_name
+#     --tags Key=Name,Value=$CFN_STACK_NAME
+#     echo "Waiting for stack update on $CFN_STACK_NAME to complete..."
+#     aws cloudformation wait stack-update-complete --stack-name $CFN_STACK_NAME
 # else
-#     echo "$stack_name not in a state where it can be updated. Status is $stack_status"
+#     echo "$CFN_STACK_NAME not in a state where it can be updated. Status is $stack_status"
 #     echo "State: $(r_print)"
 #     exit 4
 # fi
-# aws cloudformation wait stack-exists --stack-name $stack_name
+# aws cloudformation wait stack-exists --stack-name $CFN_STACK_NAME
 # wait until cluster state is ACTIVE
 # cluster_state=$(aws ecs describe-clusters --clusters mschurenko-test|awk '/^CLUSTERS/ {print $NF}')
+
+echo "Gathering outputs from $CFN_STACK_NAME"
+ecr_name=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
+awk -F\t '/^OUTPUTS/ {if($3=="ECRName"){print $NF}}')
+ECR_REPO=$(aws ecr describe-repositories --repository-names $ecr_name|awk '/^REPOSITORIES/ {print $NF}')
 
 cd $BASE_DIR
 #--------------
@@ -178,10 +182,9 @@ else
     git pull &>/dev/null
     git_sha=$(git rev-parse --short HEAD)
 fi
-
 cd ..
 
-docker_image=${DOCKER_REG}:${git_sha}
+docker_image=${ECR_REPO}:${git_sha}
 deploy=false
 
 # compare git SHA with deployed container
@@ -206,7 +209,7 @@ echo "cur image: $cur_img"
 echo "docker image: $docker_image"
 
 if [[ -z $cur_img ]] || [[ $cur_img != $docker_image ]];then
-    b_print "Building ${DOCKER_REG}:${git_sha}..."
+    b_print "Building ${ECR_REPO}:${git_sha}..."
     docker build -t ${APP_NAME}:${git_sha}\
     --build-arg repo=${REPO_DIR} \
     --build-arg version=${git_sha} .
@@ -255,3 +258,5 @@ if [[ $deploy == "true" ]];then
 else
     echo "Status: $(g_print)"
 fi
+
+echo "URL is http://"
