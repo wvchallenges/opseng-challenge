@@ -1,5 +1,9 @@
 AWSTemplateFormatVersion: '2010-09-09'
 
+Parameters:
+  ECSCluserName:
+    Type: String
+
 Resources:
   ECR:
     Type: AWS::ECR::Repository
@@ -7,6 +11,10 @@ Resources:
       RepositoryName: mschurenko-opseng-challenge-app
 
   # ecs cluster
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Ref ECSCluserName
 
   Vpc:
     Type: AWS::EC2::VPC
@@ -140,7 +148,7 @@ Outputs:
   #ALB
   ECRName:
     Description: Name of ECR
-    Value: !GetAttr ECR.ARN
+    Value: !Ref ECR
 
   EcsInstanceAsgName:
     Description: Auto Scaling Group Name for ECS Instances

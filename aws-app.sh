@@ -45,7 +45,7 @@ APP_NAME="opseng-challenge-app"
 ALB_NAME="mschurenko-alb"
 #ALB_TARGET_GROUP="arn:aws:elasticloadbalancing:us-east-1:505545132866:targetgroup/ecs-mschur-myapp/7803dbaee8ffa693"
 ALB_TARGET_GROUP="arn:aws:elasticloadbalancing:us-east-1:505545132866:targetgroup/mschurnenko-ecs-service/2c2ac7d975a213fc"
-ECS_CLUSTER="mschurenko-test"
+ECS_CLUSTER="mschurenko-cluster"
 ECS_SERVICE="mschurenko-servicev2"
 ECS_DESIRED_COUNT=1
 ECS_TASK_FAMILY="mschurenko-task"
@@ -142,21 +142,24 @@ stack_status=$(get_stack_status $CFN_STACK_NAME)
 
 echo "Checking if we need to build infrastructure..."
 
-# cd infra
-# if [[ $stack_status =~ _COMPLETE$ ]];then
-#     aws cloudformation validate-template --template-body file://./vpc.yaml
-#     aws cloudformation update-stack \
-#     --template-body file://./vpc.yaml \
-#     --stack-name $CFN_STACK_NAME \
-#     --capabilities CAPABILITY_IAM \
-#     --tags Key=Name,Value=$CFN_STACK_NAME
-#     echo "Waiting for stack update on $CFN_STACK_NAME to complete..."
-#     aws cloudformation wait stack-update-complete --stack-name $CFN_STACK_NAME
-# else
-#     echo "$CFN_STACK_NAME not in a state where it can be updated. Status is $stack_status"
-#     echo "State: $(r_print)"
-#     exit 4
-# fi
+cd infra
+if [[ $stack_status =~ _COMPLETE$ ]];then
+    aws cloudformation validate-template --template-body file://./vpc.yaml
+    aws cloudformation update-stack \
+    --template-body file://./vpc.yaml \
+    --stack-name $CFN_STACK_NAME \
+    --capabilities CAPABILITY_IAM \
+    --parameters ParameterKey=ECSCluserName,ParameterValue=${ECS_CLUSTER} \
+    --tags Key=Name,Value=$CFN_STACK_NAME
+    echo "Waiting for stack update on $CFN_STACK_NAME to complete..."
+    aws cloudformation wait stack-update-complete --stack-name $CFN_STACK_NAME
+else
+    echo "$CFN_STACK_NAME not in a state where it can be updated. Status is $stack_status"
+    echo "State: $(r_print)"
+    exit 4
+fi
+
+exit
 # aws cloudformation wait stack-exists --stack-name $CFN_STACK_NAME
 # wait until cluster state is ACTIVE
 # cluster_state=$(aws ecs describe-clusters --clusters mschurenko-test|awk '/^CLUSTERS/ {print $NF}')
