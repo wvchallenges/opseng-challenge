@@ -167,15 +167,19 @@ cd $BASE_DIR
 # Build Stage
 #--------------
 p_stage "Build"
+cd build
 echo "Checking if we need to build/deploy..."
 if [[ ! -d $REPO_DIR ]];then
     git clone $GIT_REPO $REPO_DIR &>/dev/null
+    cd $REPO_DIR
     git_sha=$(git rev-parse --short HEAD)
 else
     cd $REPO_DIR
     git pull &>/dev/null
     git_sha=$(git rev-parse --short HEAD)
 fi
+
+cd ..
 
 docker_image=${DOCKER_REG}:${git_sha}
 deploy=false
@@ -198,8 +202,9 @@ else
 fi
 
 echo "service exists: $service_exists"
+echo "cur image: $cur_img"
+echo "docker image: $docker_image"
 
-cd $BASE_DIR
 if [[ -z $cur_img ]] || [[ $cur_img != $docker_image ]];then
     b_print "Building ${DOCKER_REG}:${git_sha}..."
     docker build -t ${APP_NAME}:${git_sha}\
@@ -231,7 +236,6 @@ if [[ $deploy == "true" ]];then
     command rm $temp_json
 
     if [[ $service_exists == "true" ]];then
-        echo "HERE!!!"
         aws ecs update-service \
         --cluster $ECS_CLUSTER \
         --service $ECS_SERVICE \
