@@ -1,5 +1,5 @@
 {
-    "family": "mschurenko-test",
+    "family": "",
     "containerDefinitions": [
         {
             "name": "",
@@ -14,10 +14,7 @@
                 }
             ],
             "essential": true,
-            "privileged": true,
-            "dockerLabels": {
-                "git_sha": ""
-            }
+            "privileged": true
         }
     ]
 }
