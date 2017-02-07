@@ -152,8 +152,8 @@ if [[ -z $cur_stack ]];then
     --tags Key=Name,Value=$CFN_STACK_NAME
     bold_print "Waiting for stack $CFN_STACK_NAME to complete..."
     aws cloudformation wait stack-create-complete --stack-name $CFN_STACK_NAME
-    # wait until cluster state is ACTIVE
-    # cluster_state=$(aws ecs describe-clusters --clusters mschurenko-test|awk '/^CLUSTERS/ {print $NF}')
+    # should we wait until cluster state is ACTIVE?
+    # cluster_state=$(aws ecs describe-clusters --clusters $ECS_CLUSTER|awk '/^CLUSTERS/ {print $NF}')
 else
    cur_stack_state=$(echo "$cur_stack"|awk -F\t '/^STACKS/ {print $7}')
    if [[ $cur_stack_state == "CREATE_COMPLETE" ]] || [[ "$cur_stack_state" == "UPDATE_COMPLETE" ]];then
