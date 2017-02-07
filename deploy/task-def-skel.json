@@ -1,0 +1,20 @@
+{
+    "family": "",
+    "containerDefinitions": [
+        {
+            "name": "",
+            "image": "",
+            "cpu": 0,
+            "memory": 128,
+            "portMappings": [
+                {
+                    "containerPort": 8000,
+                    "hostPort": 0,
+                    "protocol": "tcp"
+                }
+            ],
+            "essential": true,
+            "privileged": true
+        }
+    ]
+}
