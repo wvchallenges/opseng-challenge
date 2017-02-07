@@ -13,6 +13,9 @@ Parameters:
   TargetGroupName:
     Type: String
 
+  AmiId:
+    Type: String
+
   Az1:
     Type: String
 
@@ -222,7 +225,7 @@ Resources:
   EcsAsgLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
-      ImageId: ami-d69c74c0
+      ImageId: !Ref AmiId
       InstanceType: t2.micro
       IamInstanceProfile: !Ref ecsInstanceProfile
       AssociatePublicIpAddress: true

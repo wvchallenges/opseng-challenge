@@ -158,6 +158,9 @@ if [[ -z $cur_stack ]];then
     bold_print "Stack $CFN_STACK_NAME doesn't exist. Creating..."
     bold_print "Using first two availbility zones in $AWS_DEFAULT_REGION"
     azs=($(aws ec2 describe-availability-zones|awk '/^AVAILABILITYZONES/ {if($3 == "available"){print $4}}'))
+    bold_print "Getting AMI for $AWS_DEFAULT_REGION..."
+    AMI=$(aws ec2 describe-images --owners amazon --filters Name=name,Values=amzn-ami-2016.09.e-amazon-ecs-optimized\
+    |awk -F\t '/^IMAGES/ {print $7}')
     aws cloudformation validate-template --template-body file://./ecs.yaml >/dev/null
     aws cloudformation create-stack \
     --template-body file://./ecs.yaml \
@@ -168,6 +171,7 @@ if [[ -z $cur_stack ]];then
     ParameterKey=TargetGroupName,ParameterValue=${ECS_SERVICE} \
     ParameterKey=Az1,ParameterValue=${azs[0]} \
     ParameterKey=Az2,ParameterValue=${azs[1]} \
+    ParameterKey=AmiId,ParameterValue=${AMI} \
     --tags Key=Name,Value=$CFN_STACK_NAME
     bold_print "Waiting for stack $CFN_STACK_NAME to complete..."
     aws cloudformation wait stack-create-complete --stack-name $CFN_STACK_NAME
