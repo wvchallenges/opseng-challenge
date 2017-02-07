@@ -1,20 +1,28 @@
+---
 AWSTemplateFormatVersion: '2010-09-09'
 
+Description: "Create cfn stack for opseng-challenge running in ECS"
+
 Parameters:
-  ECSCluserName:
+  ECSClusterName:
+    Type: String
+
+  ECRName:
+    Type: String
+
+  TargetGroupName:
     Type: String
 
 Resources:
   ECR:
     Type: AWS::ECR::Repository
     Properties:
-      RepositoryName: mschurenko-opseng-challenge-app
+      RepositoryName: !Ref ECRName
 
-  # ecs cluster
   ECSCluster:
     Type: AWS::ECS::Cluster
     Properties:
-      ClusterName: !Ref ECSCluserName
+      ClusterName: !Ref ECSClusterName
 
   Vpc:
     Type: AWS::EC2::VPC
@@ -70,6 +78,17 @@ Resources:
       SubnetId: !Ref PubSubnetAz2
       RouteTableId: !Ref RouteViaIgw
 
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS Allowed Ports
+      VpcId: !Ref Vpc
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 80
+        ToPort: 80
+        CidrIp: 0.0.0.0/0
+
   EcsSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -78,8 +97,8 @@ Resources:
       SecurityGroupIngress:
         IpProtocol: tcp
         FromPort: 0
-        ToPort: 65000
-        CidrIp: 0.0.0.0/0
+        ToPort: 65535
+        SourceSecurityGroupId: !Ref ALBSecurityGroup
 
   ECSTargetGroup:
     Type: AWS::ElasticLoadBalancingV2::TargetGroup
@@ -89,7 +108,7 @@ Resources:
       HealthCheckTimeoutSeconds: 10
       HealthyThresholdCount: 4
       UnhealthyThresholdCount: 3
-      Name: mschurnenko-ecs-service
+      Name: !Ref TargetGroupName
       Port: 80
       Protocol: HTTP
       VpcId: !Ref Vpc
@@ -109,47 +128,54 @@ Resources:
     Properties:
       Scheme: internet-facing
       SecurityGroups:
-        - !Ref EcsSecurityGroup
+        - !Ref ALBSecurityGroup
       Subnets:
         - !Ref PubSubnetAz1
         - !Ref PubSubnetAz2
+      Tags:
+        -
+          Key: Name
+          Value: !Sub "${AWS::StackName}"
 
-  EcsInstanceLc:
+  EcsAsgLaunchConfig:
     Type: AWS::AutoScaling::LaunchConfiguration
     Properties:
       ImageId: ami-d69c74c0
       InstanceType: t2.micro
       IamInstanceProfile: arn:aws:iam::505545132866:instance-profile/ecsInstanceRole
       AssociatePublicIpAddress: true
-      KeyName: mschurenko
       SecurityGroups: [ !Ref EcsSecurityGroup ]
       UserData:
-        Fn::Base64: |
+        Fn::Base64: !Sub |
           #!/bin/bash
-          echo ECS_CLUSTER=mschurenko-test > /etc/ecs/ecs.config
+          echo ECS_CLUSTER=${ECSClusterName} > /etc/ecs/ecs.config
 
-  EcsInstanceAsg:
+  EcsAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
         - !Ref PubSubnetAz1
         - !Ref PubSubnetAz2
-      LaunchConfigurationName: !Ref EcsInstanceLc
+      LaunchConfigurationName: !Ref EcsAsgLaunchConfig
       MinSize: '0'
       MaxSize: '1'
       DesiredCapacity: '1'
       Tags:
         -
           Key: Name
-          Value: !Sub "mschurenko - ${AWS::StackName}"
+          Value: !Sub "${AWS::StackName}"
           PropagateAtLaunch: 'true'
 
 Outputs:
-  #ALB
+  ALBDNSName:
+    Value: !GetAtt ALB.DNSName
+
   ECRName:
-    Description: Name of ECR
     Value: !Ref ECR
 
-  EcsInstanceAsgName:
-    Description: Auto Scaling Group Name for ECS Instances
-    Value: !Ref EcsInstanceAsg
+  EcsAsgName:
+    Value: !Ref EcsAsg
+
+  TargetGroup:
+    Value: !Ref ECSTargetGroup
+

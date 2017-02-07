@@ -1,80 +1,32 @@
 #!/usr/bin/env bash
 
-# aws-app.sh
-
-# Requirements:
-#  - awscli >= 1.11.44
-#  - docker
-
-# This scripts is broken up into three stages:
-# - Infrastructue
-# - Application Build
-# - Application Deployment
-# decided to not use ansible or terraform to keep dependencies minimal
-# and to make most use of awscli
-# made a dependency on docker so as to use ECS
-# decided not to use a CI service in order to keep things simple
-# the idea is that this repo manages the complete lifecycle of infrastructure management, app build
-# and deploy
-# there is minimal coupling between this repo and the opseng-challenge-app repo. ideally the Dockerfile would live with the
-# application code but since that wasn't an option it is in this repo.
-# user does not have to do anything other than run aws-app.sh. the only option added was "--destroy" which
-# will destroy all of the AWS infra that is created by this script
-# deploy works by comparing sha of HEAD to docker label in service's active task definition
-# Improvements:
-# - DNS name
-# - https instead of http
-# - Dockerfile should live in app repo
-# used git sha's as in this scenerio I do not have access to the app repo. using git tags would be better
-
-# To do:
-#  - add docker reg to cfn
-#  - add ECS cluster to cfn
-#  - auto create first task definition and service
-
 set -eu
-#set -x
 
-# global vars
+## global vars ##
 USAGE="\nUsage:$0 [--destroy|-d]\n"
-CFN_STACK_NAME="mschurenko-VPC"
+CFN_STACK_NAME="mschurenko-ecs-infra"
 #GIT_REPO="https://github.com/wvchallenges/opseng-challenge-app.git"
 GIT_REPO="https://github.com/mschurenko/opseng-challenge-app.git"
-REPO_DIR="opseng-challenge-app"
 APP_NAME="opseng-challenge-app"
 ALB_NAME="mschurenko-alb"
-#ALB_TARGET_GROUP="arn:aws:elasticloadbalancing:us-east-1:505545132866:targetgroup/ecs-mschur-myapp/7803dbaee8ffa693"
-ALB_TARGET_GROUP="arn:aws:elasticloadbalancing:us-east-1:505545132866:targetgroup/mschurnenko-ecs-service/2c2ac7d975a213fc"
 ECS_CLUSTER="mschurenko-cluster"
-ECS_SERVICE="mschurenko-servicev2"
+ECS_SERVICE="mschurenko-service"
 ECS_DESIRED_COUNT=1
 ECS_TASK_FAMILY="mschurenko-task"
 ECS_CONTAINER_PORT=8000
-IAM_ROLE="arn:aws:iam::505545132866:role/ecsServiceRole"
+ECS_IAM_ROLE="arn:aws:iam::505545132866:role/ecsServiceRole"
 
 export AWS_DEFAULT_OUTPUT=text
 
 ## Functions ##
-b_print() {
+bold_print() {
     local msg="$1"
-    echo -e "\e[96m${msg}\e[0m"
+    echo -e "\e[1m${msg}\e[0m"
 }
 
-g_print() {
-    echo -e "\e[92mUnchanged\e[0m"
-}
-
-y_print() {
-    echo -e "\e[93mChanged\e[0m"
-}
-
-r_print() {
-    echo -e "\e[91mFailed\e[0m"
-}
-
-p_stage() {
+stage_print() {
     local msg="$1"
-    echo -e "\e[4;100mStage: $msg\e[0m"
+    echo -e "\e[1;100m${msg} Stage\e[0m"
 }
 
 sanity_checks() {
@@ -88,7 +40,7 @@ sanity_checks() {
 
     if ! which docker &>/dev/null;then
         echo 'docker not found in $PATH'
-        echo "This is needed in order to build and deploy $REPO_DIR"
+        echo "This is needed in order to build and deploy $APP_NAME"
         echo "Exiting."
         exit 3
     fi
@@ -101,17 +53,51 @@ get_stack_status() {
     |awk '/^STACKS/ {print $NF}'
 }
 
-create_infra() {
-    echo "Creating Infrastructure..."
+get_cfn_outputs() {
+    bold_print "Gathering outputs from $CFN_STACK_NAME"
+    ECR_NAME=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
+    awk -F\t '/^OUTPUTS/ {if($2=="ECRName"){print $NF}}')
+    ECR_REPO=$(aws ecr describe-repositories --repository-names $ECR_NAME|awk '/^REPOSITORIES/ {print $NF}')
+
+    ALB_TARGET_GROUP=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
+    awk -F\t '/^OUTPUTS/ {if($2=="TargetGroup"){print $NF}}')
+
+    ALB_DNS_NAME=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
+    awk -F\t '/^OUTPUTS/ {if($2=="ALBDNSName"){print $NF}}')
+
+    ASG_NAME=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
+    awk -F\t '/^OUTPUTS/ {if($2=="EcsAsg"){print $NF}}')
+
+    if [[ -z $ECR_REPO ]] || [[ -z $ALB_TARGET_GROUP ]] || [[ -z $ALB_DNS_NAME ]] || [[ $ASG_NAME ]];then
+        bold_print "Could not gather all outputs from $CFN_STACK_NAME"
+        exit 5
+    fi
 }
 
-destroy_infra() {
-    echo "Destroying infrastructure..."
-    exit
+destroy_all() {
+    bold_print "Destroying everything..."
+    get_cfn_outputs
+
+    bold_print "Deleting ${ECR_NAME}..."
+    aws ecr delete-repository --repository-name $ECR_NAME --force
+
+    bold_print "Deleting ${ECS_SERVICE}..."
+    aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --desired-count 0 >/dev/null
+    aws ecs delete-service --cluster $ECS_CLUSTER --service $ECS_SERVICE >/dev/null
+
+    bold_print "Degreistering container instances from ${ECS_CLUSTER}..."
+    for arn in $(aws ecs list-container-instances --cluster $ECS_CLUSTER\
+    |awk '/^CONTAINERINSTANCEARNS/ {print $2}');do
+        aws ecs deregister-container-instance --force --cluster $ECS_CLUSTER --container-instance "$arn" >/dev/null
+    done
+
+    bold_print "Destroying ${CFN_STACK_NAME}..."
+    aws cloudformation delete-stack --stack-name $CFN_STACK_NAME
+    aws cloudformation wait stack-delete-complete --stack-name $CFN_STACK_NAME
+    bold_print "Destruction complete"
 }
-#-------
-# main
-#-------
+
+## main ##
 sanity_checks
 
 if [[ -n $@ ]];then
@@ -120,9 +106,11 @@ if [[ -n $@ ]];then
             read -p "Are you sure you want to destroy? Enter 'yes' if sure: " \
             confirm
             if [[ $confirm == "yes" ]];then
-                destroy_infra
+                destroy_all
+                exit
             else
-                echo "Skipping destroy of infrastructure.";exit
+                echo "Skipping destroy of infrastructure."
+                exit
             fi
         ;;
         --help|-h) echo -e "$USAGE";exit;;
@@ -136,52 +124,60 @@ BASE_DIR=$(pwd)
 #----------------------
 # Infrastructure Stage
 #----------------------
-p_stage "Infrastructure"
+stage_print "Infrastructure"
 
 stack_status=$(get_stack_status $CFN_STACK_NAME)
 
-echo "Checking if we need to build infrastructure..."
+bold_print "Checking if we need to build infrastructure..."
 
 cd infra
-if [[ $stack_status =~ _COMPLETE$ ]];then
-    aws cloudformation validate-template --template-body file://./vpc.yaml
-    aws cloudformation update-stack \
-    --template-body file://./vpc.yaml \
+# check if stack exists
+set +e
+cur_stack=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME 2>/dev/null)
+set -e
+
+if [[ -z $cur_stack ]];then
+    bold_print "Stack $CFN_STACK_NAME doesn't exisit. Creating..."
+    aws cloudformation validate-template --template-body file://./ecs.yaml >/dev/null
+    aws cloudformation create-stack \
+    --template-body file://./ecs.yaml \
     --stack-name $CFN_STACK_NAME \
     --capabilities CAPABILITY_IAM \
-    --parameters ParameterKey=ECSCluserName,ParameterValue=${ECS_CLUSTER} \
+    --parameters ParameterKey=ECSClusterName,ParameterValue=${ECS_CLUSTER} \
+    ParameterKey=ECRName,ParameterValue=mschurenko-${APP_NAME} \
+    ParameterKey=TargetGroupName,ParameterValue=${ECS_SERVICE} \
     --tags Key=Name,Value=$CFN_STACK_NAME
-    echo "Waiting for stack update on $CFN_STACK_NAME to complete..."
-    aws cloudformation wait stack-update-complete --stack-name $CFN_STACK_NAME
+    bold_print "Waiting for stack $CFN_STACK_NAME to complete..."
+    aws cloudformation wait stack-create-complete --stack-name $CFN_STACK_NAME
+    # wait until cluster state is ACTIVE
+    # cluster_state=$(aws ecs describe-clusters --clusters mschurenko-test|awk '/^CLUSTERS/ {print $NF}')
 else
-    echo "$CFN_STACK_NAME not in a state where it can be updated. Status is $stack_status"
-    echo "State: $(r_print)"
-    exit 4
+   cur_stack_state=$(echo "$cur_stack"|awk -F\t '/^STACKS/ {print $7}')
+   if [[ $cur_stack_state == "CREATE_COMPLETE" ]] || [[ "$cur_stack_state" == "UPDATE_COMPLETE" ]];then
+        bold_print "$CFN_STACK_NAME stack already exists."
+    else
+        bold_print "$CFN_STACK_NAME stack is in state $cur_stack_state which is not healhty."
+        bold_print "Exiting"
+        exit 1
+   fi
 fi
 
-exit
-# aws cloudformation wait stack-exists --stack-name $CFN_STACK_NAME
-# wait until cluster state is ACTIVE
-# cluster_state=$(aws ecs describe-clusters --clusters mschurenko-test|awk '/^CLUSTERS/ {print $NF}')
 
-echo "Gathering outputs from $CFN_STACK_NAME"
-ecr_name=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
-awk -F\t '/^OUTPUTS/ {if($3=="ECRName"){print $NF}}')
-ECR_REPO=$(aws ecr describe-repositories --repository-names $ecr_name|awk '/^REPOSITORIES/ {print $NF}')
+get_cfn_outputs
 
 cd $BASE_DIR
 #--------------
 # Build Stage
 #--------------
-p_stage "Build"
+stage_print "Build"
 cd build
-echo "Checking if we need to build/deploy..."
-if [[ ! -d $REPO_DIR ]];then
-    git clone $GIT_REPO $REPO_DIR &>/dev/null
-    cd $REPO_DIR
+bold_print "Checking if we need to build/deploy..."
+if [[ ! -d $APP_NAME ]];then
+    git clone $GIT_REPO $APP_NAME &>/dev/null
+    cd $APP_NAME
     git_sha=$(git rev-parse --short HEAD)
 else
-    cd $REPO_DIR
+    cd $APP_NAME
     git pull &>/dev/null
     git_sha=$(git rev-parse --short HEAD)
 fi
@@ -194,7 +190,6 @@ deploy=false
 set +e
 service=$(aws ecs list-services --cluster $ECS_CLUSTER|grep $ECS_SERVICE)
 set -e
-echo "service: $service"
 if [[ -n $service ]];then
     service_exists=true
     cur_task_def=$(aws ecs describe-services --service $ECS_SERVICE --cluster $ECS_CLUSTER\
@@ -207,31 +202,26 @@ else
     deploy=true
 fi
 
-echo "service exists: $service_exists"
-echo "cur image: $cur_img"
-echo "docker image: $docker_image"
-
 if [[ -z $cur_img ]] || [[ $cur_img != $docker_image ]];then
-    b_print "Building ${ECR_REPO}:${git_sha}..."
+    bold_print "Building ${ECR_REPO}:${git_sha}..."
     docker build -t ${APP_NAME}:${git_sha}\
-    --build-arg repo=${REPO_DIR} \
+    --build-arg repo=${APP_NAME} \
     --build-arg version=${git_sha} .
     docker tag ${APP_NAME}:${git_sha} $docker_image
     $(aws ecr get-login)
     docker push $docker_image
     cd $BASE_DIR
-    echo "Status: $(y_print)"
     deploy=true
 else
-    echo "Status: $(g_print)"
+    bold_print "Nothing to build or deploy"
 fi
 
 #--------------
 # Deploy Stage
 #--------------
-p_stage "Deploy"
+stage_print "Deploy"
 if [[ $deploy == "true" ]];then
-    b_print "Deploying $docker_image"
+    bold_print "Deploying $docker_image"
     cd deploy
     temp_json=${$}_tmp.json
     # creating a task def is idempotent
@@ -245,7 +235,7 @@ if [[ $deploy == "true" ]];then
         aws ecs update-service \
         --cluster $ECS_CLUSTER \
         --service $ECS_SERVICE \
-        --task-definition $task_def|grep ^DEPLOYMENTS
+        --task-definition $task_def >/dev/null
     else
         aws ecs create-service \
         --cluster $ECS_CLUSTER \
@@ -254,12 +244,25 @@ if [[ $deploy == "true" ]];then
         --desired-count $ECS_DESIRED_COUNT \
         --load-balancers \
         containerName=${APP_NAME},containerPort=${ECS_CONTAINER_PORT},targetGroupArn=${ALB_TARGET_GROUP} \
-        --role $IAM_ROLE
+        --role $ECS_IAM_ROLE >/dev/null
     fi
-    # wait for service to be healthy
-    g_print "$docker_image has been deployed to $ECS_SERVICE"
-else
-    echo "Status: $(g_print)"
+    bold_print "$docker_image has been deployed to $ECS_SERVICE"
 fi
 
-echo "URL is http://"
+# wait for service to be healthy
+URL="http://${ALB_DNS_NAME}"
+MAX_ATTEMPTS=30
+tries=0
+echo
+while :;do
+    echo "Checking $URL for 200 OK..."
+    r_status=$(curl --connect-timeout 10 -s -o /dev/null -w %{http_code} $URL)
+    if [[ $r_status == 200 ]];then break;fi
+    if [[ $tries -eq $MAX_ATTEMPTS ]];then
+        echo "$URL failed to return 200 after $MAX_ATTEMPTS"
+        break
+    fi
+    let tries=tries+1
+    sleep 10
+done
+bold_print "$APP_NAME is running at http://${ALB_DNS_NAME}"
