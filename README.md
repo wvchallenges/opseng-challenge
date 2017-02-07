@@ -21,7 +21,7 @@ Note: it would have been preferable to use git tags rather than a SHA; however f
 #### Deploy
 The application is deployed as an ECS task definition. It is then assoicated with an ECS service which uses the new Applicaton Load Balancer (ALB). ALB was choosen as it supports running multiple contaners of the same type on a single container instance (this was not possible with ELB due to how port mappings worked.) As a new version of a task definition is created the ECS service handles spawning tasks and adding/removing them from the ALB Target Group. A deploy is sucessfull if it passes the health check of the ALB. Because of this there can be up to two different versions of a task running concurrently. This is because ECS waits for ALB connection draining to finish before descheduling a task.
 
-### Check
+#### Check
 This checks that the ALB returns an HTTP 200 OK. (Note this doesn't check for a specfic version)
 
 ## Possible Improvements (there's surely a lot more than these)
