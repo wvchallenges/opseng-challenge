@@ -265,7 +265,7 @@ while :;do
     if [[ $r_status == 200 ]];then break;fi
     if [[ $tries -eq $MAX_ATTEMPTS ]];then
         echo "$URL failed to return 200 after $MAX_ATTEMPTS"
-        break
+        exit
     fi
     let tries=tries+1
     sleep 10
