@@ -1,14 +1,12 @@
 #!/usr/bin/env bash
 
 set -eu
-#set -x
 
 ## global vars ##
 USAGE="\nUsage:$0 [--destroy|-d]\n"
 CLI_MIN_VER="1.11.44"
 CFN_STACK_NAME="mschurenko-ecs-infra"
-#GIT_REPO="https://github.com/wvchallenges/opseng-challenge-app.git"
-GIT_REPO="https://github.com/mschurenko/opseng-challenge-app.git"
+GIT_REPO="https://github.com/wvchallenges/opseng-challenge-app.git"
 APP_NAME="opseng-challenge-app"
 ALB_NAME="mschurenko-alb"
 ECS_CLUSTER="mschurenko-cluster"
