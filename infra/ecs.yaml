@@ -24,6 +24,82 @@ Resources:
     Properties:
       ClusterName: !Ref ECSClusterName
 
+  ecsSerivceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ecs.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: "ecsService"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "ec2:AuthorizeSecurityGroupIngress"
+                  - "ec2:Describe*"
+                  - "elasticloadbalancing:DeregisterInstancesFromLoadBalancer"
+                  - "elasticloadbalancing:DeregisterTargets"
+                  - "elasticloadbalancing:Describe*"
+                  - "elasticloadbalancing:RegisterInstancesWithLoadBalancer"
+                  - "elasticloadbalancing:RegisterTargets"
+                Resource: "*"
+
+  ecsInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          -
+            Effect: "Allow"
+            Principal:
+              Service:
+                - "ec2.amazonaws.com"
+            Action:
+              - "sts:AssumeRole"
+      Path: "/"
+      Policies:
+        -
+          PolicyName: "ecsInstance"
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              -
+                Effect: "Allow"
+                Action:
+                  - "ecs:CreateCluster"
+                  - "ecs:DeregisterContainerInstance"
+                  - "ecs:DiscoverPollEndpoint"
+                  - "ecs:Poll"
+                  - "ecs:RegisterContainerInstance"
+                  - "ecs:StartTelemetrySession"
+                  - "ecs:Submit*"
+                  - "ecr:GetAuthorizationToken"
+                  - "ecr:BatchCheckLayerAvailability"
+                  - "ecr:GetDownloadUrlForLayer"
+                  - "ecr:BatchGetImage"
+                  - "logs:CreateLogStream"
+                  - "logs:PutLogEvents"
+                Resource: "*"
+
+  ecsInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Path: "/"
+      Roles: [!Ref ecsInstanceRole]
+
   Vpc:
     Type: AWS::EC2::VPC
     Properties:
@@ -142,7 +218,7 @@ Resources:
     Properties:
       ImageId: ami-d69c74c0
       InstanceType: t2.micro
-      IamInstanceProfile: arn:aws:iam::505545132866:instance-profile/ecsInstanceRole
+      IamInstanceProfile: !Ref ecsInstanceProfile
       AssociatePublicIpAddress: true
       SecurityGroups: [ !Ref EcsSecurityGroup ]
       UserData:
@@ -178,4 +254,7 @@ Outputs:
 
   TargetGroup:
     Value: !Ref ECSTargetGroup
+
+  EcsServiceRole:
+    Value: !Ref ecsSerivceRole
 

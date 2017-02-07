@@ -14,7 +14,7 @@ ECS_SERVICE="mschurenko-service"
 ECS_DESIRED_COUNT=1
 ECS_TASK_FAMILY="mschurenko-task"
 ECS_CONTAINER_PORT=8000
-ECS_IAM_ROLE="arn:aws:iam::505545132866:role/ecsServiceRole"
+#ECS_SERVICE_ROLE="arn:aws:iam::505545132866:role/ecsServiceRole"
 
 export AWS_DEFAULT_OUTPUT=text
 
@@ -68,7 +68,11 @@ get_cfn_outputs() {
     ASG_NAME=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
     awk -F\t '/^OUTPUTS/ {if($2=="EcsAsg"){print $NF}}')
 
-    if [[ -z $ECR_REPO ]] || [[ -z $ALB_TARGET_GROUP ]] || [[ -z $ALB_DNS_NAME ]] || [[ $ASG_NAME ]];then
+    ECS_SERVICE_ROLE=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME|\
+    awk -F\t '/^OUTPUTS/ {if($2=="EcsServiceRole"){print $NF}}')
+
+    if [[ -z $ECR_REPO ]] || [[ -z $ALB_TARGET_GROUP ]] || [[ -z $ALB_DNS_NAME ]] || \
+        [[ $ASG_NAME ]] || [[ -z $ECS_SERVICE_ROLE ]];then
         bold_print "Could not gather all outputs from $CFN_STACK_NAME"
         exit 5
     fi
@@ -137,7 +141,7 @@ cur_stack=$(aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME 2>/d
 set -e
 
 if [[ -z $cur_stack ]];then
-    bold_print "Stack $CFN_STACK_NAME doesn't exisit. Creating..."
+    bold_print "Stack $CFN_STACK_NAME doesn't exist. Creating..."
     aws cloudformation validate-template --template-body file://./ecs.yaml >/dev/null
     aws cloudformation create-stack \
     --template-body file://./ecs.yaml \
@@ -203,7 +207,7 @@ else
 fi
 
 if [[ -z $cur_img ]] || [[ $cur_img != $docker_image ]];then
-    bold_print "Building ${ECR_REPO}:${git_sha}..."
+    bold_print "Detected a change. Building ${ECR_REPO}:${git_sha}..."
     docker build -t ${APP_NAME}:${git_sha}\
     --build-arg repo=${APP_NAME} \
     --build-arg version=${git_sha} .
@@ -244,7 +248,7 @@ if [[ $deploy == "true" ]];then
         --desired-count $ECS_DESIRED_COUNT \
         --load-balancers \
         containerName=${APP_NAME},containerPort=${ECS_CONTAINER_PORT},targetGroupArn=${ALB_TARGET_GROUP} \
-        --role $ECS_IAM_ROLE >/dev/null
+        --role $ECS_SERVICE_ROLE >/dev/null
     fi
     bold_print "$docker_image has been deployed to $ECS_SERVICE"
 else
