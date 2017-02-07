@@ -13,6 +13,12 @@ Parameters:
   TargetGroupName:
     Type: String
 
+  Az1:
+    Type: String
+
+  Az2:
+    Type: String
+
 Resources:
   ECR:
     Type: AWS::ECR::Repository
@@ -111,14 +117,14 @@ Resources:
     Properties:
       VpcId: !Ref Vpc
       CidrBlock: 10.10.1.0/24
-      AvailabilityZone: us-east-1d
+      AvailabilityZone: !Ref Az1
 
   PubSubnetAz2:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref Vpc
       CidrBlock: 10.10.2.0/24
-      AvailabilityZone: us-east-1e
+      AvailabilityZone: !Ref Az2
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway

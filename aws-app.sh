@@ -156,6 +156,8 @@ set -e
 
 if [[ -z $cur_stack ]];then
     bold_print "Stack $CFN_STACK_NAME doesn't exist. Creating..."
+    bold_print "Using first two availbility zones in $AWS_DEFAULT_REGION"
+    azs=($(aws ec2 describe-availability-zones|awk '/^AVAILABILITYZONES/ {if($3 == "available"){print $4}}'))
     aws cloudformation validate-template --template-body file://./ecs.yaml >/dev/null
     aws cloudformation create-stack \
     --template-body file://./ecs.yaml \
@@ -164,6 +166,8 @@ if [[ -z $cur_stack ]];then
     --parameters ParameterKey=ECSClusterName,ParameterValue=${ECS_CLUSTER} \
     ParameterKey=ECRName,ParameterValue=mschurenko-${APP_NAME} \
     ParameterKey=TargetGroupName,ParameterValue=${ECS_SERVICE} \
+    ParameterKey=Az1,ParameterValue=${azs[0]} \
+    ParameterKey=Az2,ParameterValue=${azs[1]} \
     --tags Key=Name,Value=$CFN_STACK_NAME
     bold_print "Waiting for stack $CFN_STACK_NAME to complete..."
     aws cloudformation wait stack-create-complete --stack-name $CFN_STACK_NAME
