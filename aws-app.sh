@@ -14,7 +14,6 @@ ECS_SERVICE="mschurenko-service"
 ECS_DESIRED_COUNT=1
 ECS_TASK_FAMILY="mschurenko-task"
 ECS_CONTAINER_PORT=8000
-#ECS_SERVICE_ROLE="arn:aws:iam::505545132866:role/ecsServiceRole"
 
 export AWS_DEFAULT_OUTPUT=text
 
