@@ -213,7 +213,7 @@ if [[ -z $cur_img ]] || [[ $cur_img != $docker_image ]];then
     cd $BASE_DIR
     deploy=true
 else
-    bold_print "Nothing to build or deploy"
+    bold_print "Nothing to build"
 fi
 
 #--------------
@@ -247,6 +247,8 @@ if [[ $deploy == "true" ]];then
         --role $ECS_IAM_ROLE >/dev/null
     fi
     bold_print "$docker_image has been deployed to $ECS_SERVICE"
+else
+    bold_print "Nothing to deploy"
 fi
 
 # wait for service to be healthy
