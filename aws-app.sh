@@ -47,8 +47,8 @@ sanity_checks() {
 }
 
 get_stack_status() {
-    local CFN_STACK_NAME=$1
-    aws cloudformation describe-stacks --stack-name $CFN_STACK_NAME 2>/dev/null\
+    local cfn_stack_name=$1
+    aws cloudformation describe-stacks --stack-name $cfn_stack_name 2>/dev/null\
     |awk '/^STACKS/ {print $NF}'
 }
 
