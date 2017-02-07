@@ -30,7 +30,7 @@ stage_print() {
 
 check_path() {
     local cmd="$1"
-    if ! which docker &>/dev/null;then
+    if ! which $cmd &>/dev/null;then
         echo "$cmd not found in \$PATH"
         echo "This is needed in order to build and deploy $APP_NAME"
         echo "Exiting."
