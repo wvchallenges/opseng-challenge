@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 
 set -eu
+#set -x
 
 ## global vars ##
 USAGE="\nUsage:$0 [--destroy|-d]\n"
+CLI_MIN_VER="1.11.44"
 CFN_STACK_NAME="mschurenko-ecs-infra"
 #GIT_REPO="https://github.com/wvchallenges/opseng-challenge-app.git"
 GIT_REPO="https://github.com/mschurenko/opseng-challenge-app.git"
@@ -20,12 +22,22 @@ export AWS_DEFAULT_OUTPUT=text
 ## Functions ##
 bold_print() {
     local msg="$1"
-    echo -e "\e[1m${msg}\e[0m"
+    echo "    >- ${msg}"
 }
 
 stage_print() {
     local msg="$1"
-    echo -e "\e[1;100m${msg} Stage\e[0m"
+    echo "|-- ${msg} Stage --|"
+}
+
+check_path() {
+    local cmd="$1"
+    if ! which docker &>/dev/null;then
+        echo "$cmd not found in \$PATH"
+        echo "This is needed in order to build and deploy $APP_NAME"
+        echo "Exiting."
+        exit 3
+    fi
 }
 
 sanity_checks() {
@@ -37,13 +49,18 @@ sanity_checks() {
         exit 2
     fi
 
-    if ! which docker &>/dev/null;then
-        echo 'docker not found in $PATH'
-        echo "This is needed in order to build and deploy $APP_NAME"
-        echo "Exiting."
-        exit 3
-    fi
-    set -u
+    check_path docker
+
+    check_path aws
+    # check awscli version
+    cli_ver=($(aws --version 2>&1|awk -F/ '{print $2}'|awk '{print $1}'|awk -F. '{print $1, $2, $3}'))
+    cli_min_ver_a=($(echo $CLI_MIN_VER|awk -F. '{print $1, $2, $3}'))
+    for n in $(seq 0 $(( ${#cli_ver[@]} - 1 )));do
+        if [[ ${cli_ver[n]} < ${cli_min_ver_a[n]} ]];then
+            echo "awscli is too old. >= $CLI_MIN_VER is required. Exiting"
+            exit 6
+        fi
+    done
 }
 
 get_stack_status() {
@@ -255,19 +272,20 @@ else
 fi
 
 # wait for service to be healthy
+stage_print "Check"
+
 URL="http://${ALB_DNS_NAME}"
 MAX_ATTEMPTS=30
 tries=0
-echo
 while :;do
-    echo "Checking $URL for 200 OK..."
+    bold_print "Checking $URL for 200 OK..."
     r_status=$(curl --connect-timeout 10 -s -o /dev/null -w %{http_code} $URL)
     if [[ $r_status == 200 ]];then break;fi
     if [[ $tries -eq $MAX_ATTEMPTS ]];then
-        echo "$URL failed to return 200 after $MAX_ATTEMPTS"
+        bold_print "$URL failed to return 200 after $MAX_ATTEMPTS"
         exit
     fi
     let tries=tries+1
     sleep 10
 done
-bold_print "$APP_NAME is running at http://${ALB_DNS_NAME}"
+bold_print "Result: $APP_NAME is running at http://${ALB_DNS_NAME}"
