@@ -27,6 +27,9 @@ createAndInstallKeypair() {
     rm -f /tmp/keypair.out
     return 1
   else
+    if [ -f ~/.ssh/${_KEYPAIR_NAME}.pem ]; then
+      rm -f ~/.ssh/${_KEYPAIR_NAME}.pem
+    fi
     cat /tmp/keypair.out | python -c "import sys, json; print json.load(sys.stdin)['KeyMaterial']" > ~/.ssh/${_KEYPAIR_NAME}.pem
     mkdir -p ~/.ssh
     chmod 700 ~/.ssh
