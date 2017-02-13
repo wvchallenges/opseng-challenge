@@ -12,7 +12,7 @@ I'm somewhat proud of acheiving this challenge because I had never used AWS unti
 Simply run aws-app.sh to deploy the app. There are also some parameters :
 
 ```bash
-usage: $0 [-b|--branch-or-tag <branch-or-tag>][-h|--help]
+usage: ./aws-app.sh [-b|--branch-or-tag <branch-or-tag>][-h|--help]
 
 -b|--branch-or-tag <branch-or-tag>  Sets the branch or tag name of the GitHub repository to deploy to AWS
 -h|--help                           Prints this help message
