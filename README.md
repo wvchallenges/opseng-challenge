@@ -31,3 +31,5 @@ Some things could be improved in what I have done:
 - Extract parameters from main shell script in order to store them in a Yaml file for instance, which is more user-friendly
 - Store the opseng-challenge-app files in a S3 bucket and mount this storage from EC2 instance in order to be able to quickly scale up the system by adding some other EC2 instances sharing the same bucket.
 - Use Route53 to define an easy to remember DNS name for the app
+- Use virtualenv to run Python web app in a box and to be able to publish other Python apps using different versions of the same libraries
+- Use Docker to containerize the app and to be able to deploy it everywhere (different OSes, different cloud providers...)

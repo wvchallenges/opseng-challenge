@@ -36,7 +36,7 @@ SCP_CMD="scp -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~
 # Get this script install dir
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-source "${SCRIPT_DIR}/inc/outputs.sh"
+source "${SCRIPT_DIR}/inc/toolbox.sh"
 source "${SCRIPT_DIR}/inc/aws.sh"
 source "${SCRIPT_DIR}/inc/aws-app-steps.sh"
 
@@ -76,7 +76,7 @@ manageSecGrp ${SECGRP_NAME} "${SECGRP_DESC}"
 # 3- Create EC2 instance
 manageInstance ${AWS_EC2_UBUNTU_AMI_ID} ${AWS_EC2_INSTANCE_TYPE} ${KEY_PAIR_NAME} ${SECGRP_NAME} ${AWS_EC2_INSTANCE_TAG_NAME} ${AWS_EC2_INSTANCE_TAG_VALUE} "${SSH_CMD}"
 
-INSTANCE_ID=$(getInstanceId ${AWS_EC2_INSTANCE_TAG_NAME} ${AWS_EC2_INSTANCE_TAG_VALUE})
+INSTANCE_ID=$(cat ./instance.id)
 INSTANCE_PUBLIC_DNS_NAME=$(getInstancePublicDnsName ${INSTANCE_ID})
 echoInfo "EC2 instance public DNS name: ${INSTANCE_PUBLIC_DNS_NAME}"
 
@@ -84,3 +84,6 @@ echoInfo "EC2 instance public DNS name: ${INSTANCE_PUBLIC_DNS_NAME}"
 setupAndDeployApp ${INSTANCE_PUBLIC_DNS_NAME} $HELLO_APP_BRANCH_OR_TAG $HELLO_APP_GIT_URL \
                   $HELLOAPP_INSTALLDIR $AWS_EC2_UBUNTU_LOGIN "$REQUIRED_PKGS" "${SCRIPT_DIR}/${NGINX_TEMPLATE}" \
                   $GUNICORN_PORT $NGINX_CONFDIR "$SSH_CMD" "$SCP_CMD"
+
+# 5- Exit
+cleanupAndExit 0

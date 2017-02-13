@@ -2,8 +2,8 @@ server {
   listen 80;
   server_name ##SERVERNAME##;
 
-  access_log /var/log/nginx-helloapp-access.log;
-  error_log /var/log/nginx-helloapp-error.log;
+  access_log /var/log/nginx/helloapp-access.log;
+  error_log /var/log/nginx/helloapp-error.log;
   root ##WEBROOT##;
 
   location / {

@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 manageKeypair() {
   local _KEY_PAIR_NAME=$1
 
@@ -11,7 +10,7 @@ manageKeypair() {
     createAndInstallKeypair ${_KEY_PAIR_NAME}
     if [ $? -ne 0 ]; then
       echoError "Could not create and install new key pair. Exiting."
-      exit 1
+      cleanupAndExit 1
     fi
   else
     echoSuccess "${_KEY_PAIR_NAME} key pair already exists."
@@ -20,17 +19,16 @@ manageKeypair() {
       deleteKeypair ${_KEY_PAIR_NAME}
       if [ $? -ne 0 ]; then
         echoError "Could not delete existing key pair. Exiting."
-        exit 1
+        cleanupAndExit 1
       fi
       createAndInstallKeypair ${_KEY_PAIR_NAME}
       if [ $? -ne 0 ]; then
         echoError "Could not create and install new key pair. Exiting."
-        exit 1
+        cleanupAndExit 1
       fi
     fi
   fi
 }
-export -f manageKeypair
 
 manageSecGrp() {
   local _SECGRP_NAME=$1
@@ -44,7 +42,7 @@ manageSecGrp() {
     createSecGrp ${_SECGRP_NAME} "${_SECGRP_DESC}"
     if [ $? -ne 0 ]; then
       echoError "Could not create security group. Exiting."
-      exit 1
+      cleanupAndExit 1
     fi
     _CREATE_RULES=1
   else
@@ -58,12 +56,11 @@ manageSecGrp() {
     	createSecGrpRule ${_SECGRP_NAME} ${i}
       if [ $? -ne 0 ]; then
         echoError "Could not create inbound rule for port ${i}. Exiting."
-        exit 1
+        cleanupAndExit 1
       fi
     done
   fi
 }
-export -f manageSecGrp
 
 manageInstance() {
   local _EC2_AMI_ID=$1
@@ -74,6 +71,10 @@ manageInstance() {
   local _TAG_VALUE=$6
   local _SSH_CMD="$7"
 
+  if [ -f ./instance.id ]; then
+    rm -f ./instance.id
+  fi
+
   echoStep "Create EC2 instance"
   checkInstance ${_TAG_NAME} ${_TAG_VALUE}
   if [ $? -eq 0 ]; then
@@ -81,30 +82,31 @@ manageInstance() {
     local _INSTANCE_ID=$(getInstanceId ${_TAG_NAME} ${_TAG_VALUE})
     if [ $? -ne 0 ]; then
       echoError "Could not get EC2 instance ID"
-      exit 1
+      cleanupAndExit 1
     fi
     local _INSTANCE_PUBLIC_DNS_NAME=$(getInstancePublicDnsName ${_INSTANCE_ID})
     if [ $? -ne 0 ]; then
       echoError "Could not get EC2 instance public DNS name"
-      exit 1
+      cleanupAndExit 1
     fi
     echoInfo "Existing EC2 instance public DNS name: ${_INSTANCE_PUBLIC_DNS_NAME}"
     ${_SSH_CMD} ${_INSTANCE_PUBLIC_DNS_NAME} exit
     if [ $? -ne 0 ]; then
-      echoError "Could not ssh EC2 instance. We are going to delete and recreate it."
+      echoWarning "Could not ssh EC2 instance. We are going to delete and recreate it."
       deleteInstance ${_INSTANCE_ID}
       if [ $? -ne 0 ]; then
         echoError "Could not terminate existing instance. Exiting."
-        exit 1
+        cleanupAndExit 1
       fi
       echoSuccess "EC2 instance successfully deleted."
       echoInfo "Create new EC2 instance."
       createAndTagInstance ${_EC2_AMI_ID} ${_EC2_INSTANCE_TYPE} ${_KEY_PAIR_NAME} ${_SECGRP_NAME} ${_TAG_NAME} ${_TAG_VALUE}
     else
+      echo $_INSTANCE_ID > ./instance.id
       echoSuccess "SSH connection to EC2 instance successfully acheived."
     fi
   else
-    echoInfo "EC2 instance not found, we are going to create it."
+    echoWarning "EC2 instance not found, we are going to create it."
     createAndTagInstance ${_EC2_AMI_ID} ${_EC2_INSTANCE_TYPE} ${_KEY_PAIR_NAME} ${_SECGRP_NAME} ${_TAG_NAME} ${_TAG_VALUE}
   fi
 }
@@ -120,16 +122,17 @@ createAndTagInstance() {
   local _INSTANCE_ID=$(createAndRunInstance ${_EC2_AMI_ID} ${_EC2_INSTANCE_TYPE} ${_KEY_PAIR_NAME} ${_SECGRP_NAME})
   if [ $? -ne 0 ]; then
     echoError "Could not create and run new EC2 instance. Exiting."
-    exit 1
+    cleanupAndExit 1
   fi
   echoSuccess "EC2 instance successfully created and launched."
+  echo $_INSTANCE_ID > ./instance.id
   echoStep "Wait some time so as to let EC2 instance start..."
   sleep 5
   echoInfo "Create tag for new instance"
   tagInstance ${_INSTANCE_ID} ${_TAG_NAME} ${_TAG_VALUE}
   if [ $? -ne 0 ]; then
     echoError "Could not create tag EC2 instance. Exiting."
-    exit 1
+    cleanupAndExit 1
   fi
   echoSuccess "EC2 instance successfully tagged."
 }
@@ -152,14 +155,14 @@ setupAndDeployApp() {
   ${_SSH_CMD} ${_INSTANCE_PUBLIC_DNS_NAME} "sudo apt-get update -q  > /dev/null 2>&1"
   if [ $? -ne 0 ]; then
     echoError "Unable to update packages list. Exiting."
-    exit 1
+    cleanupAndExit 1
   fi
   echoSuccess "Packages list successfully updated."
   echoInfo "Install required packages on instance (${_REQUIRED_PKGS})"
   ${_SSH_CMD} ${_INSTANCE_PUBLIC_DNS_NAME} "sudo apt-get install -yq ${_REQUIRED_PKGS} > /dev/null 2>&1"
   if [ $? -ne 0 ]; then
     echoError "Something went wrong during packages installation. Exiting."
-    exit 1
+    cleanupAndExit 1
   fi
   echoSuccess "Required packages successfully installed."
   echoInfo "Get HelloApp code (branch or tag = ${_APP_BRANCH_OR_TAG})"
@@ -170,23 +173,24 @@ setupAndDeployApp() {
                                           && git clone --branch ${_APP_BRANCH_OR_TAG} --depth 1 ${_APP_URL} . > /dev/null 2>&1"
   if [ $? -ne 0 ]; then
     echoError "Something went wrong during Hello App source code installation. Exiting."
-    exit 1
+    cleanupAndExit 1
   fi
   echoSuccess "Hello App source code successfully downloaded."
   echoInfo "Install HelloApp Python requirements"
   ${_SSH_CMD} ${_INSTANCE_PUBLIC_DNS_NAME} "cd ${_APP_INSTALLDIR} \
-                                          && sudo pip install -r requirements.txt > /dev/null 2>&1"
+                                            && sudo pip install -r requirements.txt > /dev/null 2>&1"
   if [ $? -ne 0 ]; then
     echoError "Something went wrong during Hello App Python requirements installation. Exiting."
-    exit 1
+    cleanupAndExit 1
   fi
   echoSuccess "Hello App source Python requirements successfully installed."
   echoInfo "Launch Gunicorn"
-  ${_SSH_CMD} ${_INSTANCE_PUBLIC_DNS_NAME} "cd ${_APP_INSTALLDIR} \
-                                          && sudo gunicorn -D app:app > /dev/null 2>&1"
+  ${_SSH_CMD} ${_INSTANCE_PUBLIC_DNS_NAME} "sudo killall -q gunicorn ; \
+                                            cd ${_APP_INSTALLDIR} \
+                                            && sudo gunicorn -b 127.0.0.1:${_GUNICORN_PORT} -D app:app > /dev/null 2>&1"
   if [ $? -ne 0 ]; then
     echoError "An error occured while trying to launch Gunicorn. Exiting."
-    exit 1
+    cleanupAndExit 1
   fi
   echoSuccess "Gunicorn successfully started."
   echoInfo "Generate Nginx configuration from template"
@@ -195,15 +199,16 @@ setupAndDeployApp() {
        s/##GUNICORN_PORT##/${_GUNICORN_PORT}/g" "${_NGING_TPL}" > /tmp/helloapp.nginx 2> /dev/null
   if [ $? -ne 0 ]; then
    echoError "Something went wrong during Nginx configuration generation. Exiting."
-   exit 1
+   cleanupAndExit 1
   fi
   echoSuccess "NGinx configuration successfully generated."
   echoInfo "Send Nginx configuration to EC2 instance"
   ${_SCP_CMD} /tmp/helloapp.nginx ${_INSTANCE_LOGIN}@${_INSTANCE_PUBLIC_DNS_NAME}:/tmp/helloapp
   if [ $? -ne 0 ]; then
    echoError "Something went wrong during Nginx configuration SCP transfer. Exiting."
-   exit 1
+   cleanupAndExit 1
   fi
+  rm -f /tmp/helloapp.nginx
   echoSuccess "NGinx configuration successfully sent to EC2 instance."
   echoInfo "Configure Nginx on EC2 instance"
   ${_SSH_CMD} ${_INSTANCE_PUBLIC_DNS_NAME} "sudo cp /tmp/helloapp ${_NGINX_CONFDIR}/sites-available \
@@ -212,7 +217,7 @@ setupAndDeployApp() {
                                           && sudo service nginx restart > /dev/null 2>&1"
   if [ $? -ne 0 ]; then
    echoError "Something went wrong during Nginx configuration. Exiting."
-   exit 1
+   cleanupAndExit 1
   fi
   echoSuccess "NGinx successfully configured."
   echoStep "HelloApp deployment successfully finished, it is available at http://${_INSTANCE_PUBLIC_DNS_NAME}"

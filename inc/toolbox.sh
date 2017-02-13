@@ -36,7 +36,6 @@ echoError() {
 
   echo $_MSG | cecho RED
 }
-export -f echoError
 
 # Prints a warning message to terminal
 echoWarning() {
@@ -44,7 +43,6 @@ echoWarning() {
 
   echo $_MSG | cecho ORANGE
 }
-export -f echoWarning
 
 # Prints a success message to terminal
 echoSuccess() {
@@ -52,7 +50,6 @@ echoSuccess() {
 
   echo $_MSG | cecho GREEN
 }
-export -f echoSuccess
 
 # Prints an info message to terminal
 echoInfo() {
@@ -60,7 +57,6 @@ echoInfo() {
 
   echo $_MSG
 }
-export -f echoInfo
 
 # Prints a debug message to terminal
 echoDebug() {
@@ -68,7 +64,6 @@ echoDebug() {
 
   echo $_MSG | cecho CYAN
 }
-export -f echoDebug
 
 echoStep() {
   local _MSG=$1
@@ -87,4 +82,14 @@ Sets up required AWS resources and deploys Python app available here: https://gi
 Thanks for this challenge! Julien
 EOF
 }
-export -f printHelp
+
+cleanupAndExit() {
+  local _EXIT_CODE=$1
+
+  if [ -f ./instance.id ]; then
+    rm -f ./instance.id
+  fi
+  find /tmp -maxdepth 1 -type f -name "julien.*.out" -exec rm -f {} \;
+
+  exit $_EXIT_CODE
+}
