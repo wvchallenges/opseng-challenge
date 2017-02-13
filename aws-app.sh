@@ -2,8 +2,7 @@
 
 # Basic Python app git parameters
 BASIC_APP_URL=https://github.com/wvchallenges/opseng-challenge-app
-BASIC_APP_DEFAULT_BRANCH=master
-BASIC_APP_DEFAULT_TAG=HEAD
+BASIC_APP_DEFAULT_BRANCH_OR_TAG=master
 
 # SSH Key Pair name
 KEY_PAIR_NAME=HelloAppKey
@@ -13,8 +12,13 @@ SECGRP_NAME=HelloAppSecGrp
 SECGRP_DESC="Security group for Hello App access"
 SECGRP_RULES_PORT=( 22 80 )
 
+# Variables related to EC2 Instance installation and configuration
+REQUIRED_PKGS="git-core nginx python python-pip"
+HELLOAPP_INSTALLDIR=/var/www/helloapp
+GUNICORN_PORT=8000
 # Base Nginx configuration to use for app publication
 NGINX_TEMPLATE=resources/nginx/helloapp
+NGINX_CONFDIR=/etc/nginx
 
 # AWS EC2 Instance parameters
 AWS_EC2_INSTANCE_TYPE=t2.micro
@@ -25,8 +29,9 @@ AWS_EC2_INSTANCE_TAG_VALUE=opseng-challenge-lamure
 AWS_EC2_UBUNTU_AMI_ID=ami-539ac933
 AWS_EC2_UBUNTU_LOGIN=ubuntu
 
-# SSH EC2 Instance
+# SSH related commands for EC2 Instance
 SSH_CMD="ssh -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/${KEY_PAIR_NAME}.pem -l ${AWS_EC2_UBUNTU_LOGIN}"
+SCP_CMD="scp -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/${KEY_PAIR_NAME}.pem"
 
 # Get this script install dir
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
@@ -158,8 +163,70 @@ sleep 5
 # 4- Configure instance and install app
 echoStep "Configure instance and install app"
 echoInfo "Update available packages list"
-${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} sudo apt-get update -q
+${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} "sudo apt-get update -q  > /dev/null 2>&1"
 if [ $? -ne 0 ]; then
   echoError "Unable to update packages list. Exiting."
   exit 1
 fi
+echoSuccess "Packages list successfully updated."
+echoInfo "Install required packages on instance (${REQUIRED_PKGS})"
+${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} "sudo apt-get install -yq ${REQUIRED_PKGS} > /dev/null 2>&1"
+if [ $? -ne 0 ]; then
+  echoError "Something went wrong during packages installation. Exiting."
+  exit 1
+fi
+echoSuccess "Required packages successfully installed."
+echoInfo "Get HelloApp code (branch or tag = ${BASIC_APP_DEFAULT_BRANCH_OR_TAG})"
+${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} "sudo rm -rf ${HELLOAPP_INSTALLDIR} 2> /dev/null; \
+                                        sudo mkdir -p ${HELLOAPP_INSTALLDIR} \
+                                        && sudo chown ${AWS_EC2_UBUNTU_LOGIN} ${HELLOAPP_INSTALLDIR} \
+                                        && cd ${HELLOAPP_INSTALLDIR} \
+                                        && git clone --branch ${BASIC_APP_DEFAULT_BRANCH_OR_TAG} --depth 1 ${BASIC_APP_URL} . > /dev/null 2>&1"
+if [ $? -ne 0 ]; then
+  echoError "Something went wrong during Hello App source code installation. Exiting."
+  exit 1
+fi
+echoSuccess "Hello App source code successfully downloaded."
+echoInfo "Install HelloApp Python requirements"
+${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} "cd ${HELLOAPP_INSTALLDIR} \
+                                        && sudo pip install -r requirements.txt > /dev/null 2>&1"
+if [ $? -ne 0 ]; then
+  echoError "Something went wrong during Hello App Python requirements installation. Exiting."
+  exit 1
+fi
+echoSuccess "Hello App source Python requirements successfully installed."
+echoInfo "Launch Gunicorn"
+${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} "cd ${HELLOAPP_INSTALLDIR} \
+                                        && sudo gunicorn -D app:app > /dev/null 2>&1"
+if [ $? -ne 0 ]; then
+  echoError "An error occured while trying to launch Gunicorn. Exiting."
+  exit 1
+fi
+echoSuccess "Gunicorn successfully started."
+echoInfo "Generate Nginx configuration from template"
+sed "s/##SERVERNAME##/${INSTANCE_PUBLIC_DNS_NAME}/g;\
+     s@##WEBROOT##@${HELLOAPP_INSTALLDIR}@g;\
+     s/##GUNICORN_PORT##/${GUNICORN_PORT}/g" "${SCRIPT_DIR}/${NGINX_TEMPLATE}" > /tmp/helloapp.nginx 2> /dev/null
+if [ $? -ne 0 ]; then
+ echoError "Something went wrong during Nginx configuration generation. Exiting."
+ exit 1
+fi
+echoSuccess "NGinx configuration successfully generated."
+echoInfo "Send Nginx configuration to EC2 instance"
+${SCP_CMD} /tmp/helloapp.nginx ${AWS_EC2_UBUNTU_LOGIN}@${INSTANCE_PUBLIC_DNS_NAME}:/tmp/helloapp
+if [ $? -ne 0 ]; then
+ echoError "Something went wrong during Nginx configuration SCP transfer. Exiting."
+ exit 1
+fi
+echoSuccess "NGinx configuration successfully sent to EC2 instance."
+echoInfo "Configure Nginx on EC2 instance"
+${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} "sudo cp /tmp/helloapp ${NGINX_CONFDIR}/sites-available \
+                                        && sudo rm -f ${NGINX_CONFDIR}/sites-enabled/* \
+                                        && sudo ln -s ${NGINX_CONFDIR}/sites-available/helloapp ${NGINX_CONFDIR}/sites-enabled/helloapp \
+                                        && sudo service nginx restart > /dev/null 2>&1"
+if [ $? -ne 0 ]; then
+ echoError "Something went wrong during Nginx configuration. Exiting."
+ exit 1
+fi
+echoSuccess "NGinx successfully configured."
+echoStep "HelloApp deployment successfully finished, it is available at http://${INSTANCE_PUBLIC_DNS_NAME}"
