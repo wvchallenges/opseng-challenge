@@ -75,3 +75,16 @@ echoStep() {
 
   echo "-> $_MSG"
 }
+
+printHelp() {
+  cat << EOF
+usage: $0 [-b|--branch-or-tag <branch-or-tag>][-h|--help]
+
+-b|--branch-or-tag <branch-or-tag>  Sets the branch or tag name of the GitHub repository to deploy to AWS
+-h|--help                           Prints this help message
+
+Sets up required AWS resources and deploys Python app available here: https://github.com/wvchallenges/opseng-challenge-app
+Thanks for this challenge! Julien
+EOF
+}
+export -f printHelp

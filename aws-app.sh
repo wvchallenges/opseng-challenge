@@ -5,10 +5,10 @@ BASIC_APP_URL=https://github.com/wvchallenges/opseng-challenge-app
 BASIC_APP_DEFAULT_BRANCH_OR_TAG=master
 
 # SSH Key Pair name
-KEY_PAIR_NAME=HelloAppKey
+KEY_PAIR_NAME=julien.HelloAppKey
 
 # Security group
-SECGRP_NAME=HelloAppSecGrp
+SECGRP_NAME=julien.HelloAppSecGrp
 SECGRP_DESC="Security group for Hello App access"
 SECGRP_RULES_PORT=( 22 80 )
 
@@ -22,11 +22,11 @@ NGINX_CONFDIR=/etc/nginx
 
 # AWS EC2 Instance parameters
 AWS_EC2_INSTANCE_TYPE=t2.micro
-AWS_EC2_INSTANCE_TAG_NAME=usage
-AWS_EC2_INSTANCE_TAG_VALUE=opseng-challenge-lamure
+AWS_EC2_INSTANCE_TAG_NAME=Name
+AWS_EC2_INSTANCE_TAG_VALUE=julien.HelloAppInstance
 
 # Ubuntu Xenial Amazon image
-AWS_EC2_UBUNTU_AMI_ID=ami-539ac933
+AWS_EC2_UBUNTU_AMI_ID=ami-7c803d1c
 AWS_EC2_UBUNTU_LOGIN=ubuntu
 
 # SSH related commands for EC2 Instance
@@ -36,8 +36,33 @@ SCP_CMD="scp -q -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~
 # Get this script install dir
 SCRIPT_DIR="$(dirname "$(readlink -f "$0")")"
 
-source "$SCRIPT_DIR/inc/funcs.sh"
-source "$SCRIPT_DIR/inc/aws.sh"
+source "${SCRIPT_DIR}/inc/outputs.sh"
+source "${SCRIPT_DIR}/inc/aws.sh"
+
+BASIC_APP_BRANCH_OR_TAG=
+while [ $# -ge 1 ]
+do
+  key="$1"
+
+  case $key in
+      -b|--branch-or-tag)
+      BASIC_APP_BRANCH_OR_TAG="$2"
+      shift # past argument
+      ;;
+      -h|--help)
+      printHelp
+      exit 0
+      ;;
+      *)
+              # unknown option
+      ;;
+  esac
+  shift # past argument or value
+done
+
+if [ -z "${BASIC_APP_BRANCH_OR_TAG}" ]; then
+  BASIC_APP_BRANCH_OR_TAG=$BASIC_APP_DEFAULT_BRANCH_OR_TAG
+fi
 
 echoStep "Starting HelloApp deployment"
 
@@ -176,12 +201,12 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 echoSuccess "Required packages successfully installed."
-echoInfo "Get HelloApp code (branch or tag = ${BASIC_APP_DEFAULT_BRANCH_OR_TAG})"
+echoInfo "Get HelloApp code (branch or tag = ${BASIC_APP_BRANCH_OR_TAG})"
 ${SSH_CMD} ${INSTANCE_PUBLIC_DNS_NAME} "sudo rm -rf ${HELLOAPP_INSTALLDIR} 2> /dev/null; \
                                         sudo mkdir -p ${HELLOAPP_INSTALLDIR} \
                                         && sudo chown ${AWS_EC2_UBUNTU_LOGIN} ${HELLOAPP_INSTALLDIR} \
                                         && cd ${HELLOAPP_INSTALLDIR} \
-                                        && git clone --branch ${BASIC_APP_DEFAULT_BRANCH_OR_TAG} --depth 1 ${BASIC_APP_URL} . > /dev/null 2>&1"
+                                        && git clone --branch ${BASIC_APP_BRANCH_OR_TAG} --depth 1 ${BASIC_APP_URL} . > /dev/null 2>&1"
 if [ $? -ne 0 ]; then
   echoError "Something went wrong during Hello App source code installation. Exiting."
   exit 1

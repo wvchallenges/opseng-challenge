@@ -1,7 +1,7 @@
 #!/bin/bash
 
 AWS_CLI_OUTPUT=json
-AWS_CLI_REGION=us-west-1
+AWS_CLI_REGION=us-west-2
 AWS_CLI_EC2_CMD="aws --output ${AWS_CLI_OUTPUT} --region ${AWS_CLI_REGION} ec2"
 
 # Key pair management
@@ -27,7 +27,7 @@ createAndInstallKeypair() {
     rm -f /tmp/keypair.out
     return 1
   else
-    echo /tmp/keypair.out | python -c "import sys, json; print json.load(sys.stdin)['KeyMaterial']" > ~/.ssh/${_KEYPAIR_NAME}.pem
+    cat /tmp/keypair.out | python -c "import sys, json; print json.load(sys.stdin)['KeyMaterial']" > ~/.ssh/${_KEYPAIR_NAME}.pem
     mkdir -p ~/.ssh
     chmod 700 ~/.ssh
     chmod 400 ~/.ssh/${_KEYPAIR_NAME}.pem
