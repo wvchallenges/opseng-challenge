@@ -1,0 +1,35 @@
+---
+
+- hosts: all
+  
+  tasks:
+    - name: Load docker onto system
+      shell: curl -fsSL https://get.docker.com/ | sh
+    
+    - name: Install pip
+      apt: name=python-pip state=present
+      become: True
+    
+    - name: Install docker-py
+      pip: name=docker-py
+      become: True
+    
+    - name: Push docker image to system
+      copy: src=../docker/opsgadget.tar dest=/home/ubuntu/opsgadget.tar
+    
+    - name: Load docker image
+      become: True
+      shell: docker load --input /home/ubuntu/opsgadget.tar
+      # TODO: figure out why this returns an error of literally nothing.
+      #docker_image:
+        #name: adiana/opseng
+        #tag: latest
+        #load_path: /home/ubuntu/opsgadget.tar
+    
+    - name: Run docker container
+      become: True
+      docker_container:
+        name: opsgadget
+        image: adiana/opseng:latest
+        ports:
+         - "80:80"

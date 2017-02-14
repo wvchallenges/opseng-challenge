@@ -1,0 +1,24 @@
+##
+## Arch Linux repository mirrorlist
+## Sorted by mirror score from mirror status page
+## Generated on 2016-05-26
+##
+
+## Score: 0.6, Canada
+Server = http://muug.ca/mirror/archlinux/$repo/os/$arch
+## Score: 0.8, Canada
+Server = https://muug.ca/mirror/archlinux/$repo/os/$arch
+## Score: 1.4, Canada
+Server = http://mirror.frgl.pw/archlinux/$repo/os/$arch
+## Score: 1.4, Canada
+Server = http://mirror.csclub.uwaterloo.ca/archlinux/$repo/os/$arch
+## Score: 1.8, Canada
+Server = https://mirror.frgl.pw/archlinux/$repo/os/$arch
+## Score: 1.9, Canada
+Server = http://archlinux.mirror.vexxhost.com/$repo/os/$arch
+## Score: 4.2, Canada
+Server = http://mirror.clibre.uqam.ca/archlinux/$repo/os/$arch
+## Score: 6.2, Canada
+Server = http://archlinux.mirror.rafal.ca/$repo/os/$arch
+## Score: 7.1, Canada
+Server = http://mirror.its.dal.ca/archlinux/$repo/os/$arch
