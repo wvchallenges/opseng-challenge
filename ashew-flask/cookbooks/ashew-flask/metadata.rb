@@ -1,0 +1,7 @@
+name 'ashew-flask'
+maintainer 'The Authors'
+maintainer_email 'you@example.com'
+license 'all_rights'
+description 'Installs/Configures ashew-flask'
+long_description 'Installs/Configures ashew-flask'
+version '0.1.0'

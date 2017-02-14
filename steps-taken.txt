@@ -1,0 +1,28 @@
+Steps I took:
+
+Found an appropriate AMI running Ubuntu 14.04 x64 - ami-7b386c11 (Default is HVM, t1.micro requires paravirtualization so I had to go hunting)
+Created new VPC - vpc-0cbe6f6b, set default automatic public IPs to yes
+Created new subnet - subnet-dddef6ab
+Created Internet Gateway - igw-e8afd68c
+Attached IGW to VPC, updated route table rtb-08dd8e6f to include default route via attached IGW
+Updated sg-ee6ada95 to allow port 80 from everywhere, 22 from my home and the IP provided by Dan
+Spun up instance
+
+Installed chef (for chef-solo), disabled chef-client
+
+apt-get install python-pip python-dev build-essential gunicorn nginx git gcc
+pip install --upgrade pip
+pip install  'Flask==0.10.1'
+
+Created basic flask hello world init file, wsgi wrapper
+Configured gunicorn to use the app's wsgi wrapper
+Configured nginx to proxy_pass to gunicorn
+Confirmed I can view Hello World from home PC and phone (outside my home network)
+
+Wrote chef cookbook to automate the tasks I completed manually (as I've never administered a python webserver before, I wanted to be sure of what I was doing before I went ahead and wrote my recipe)
+Tested chef cookbook via kitchen - ensured system was running as expected at completion
+
+Wrote bash script to spin up instance
+Worked on query strings to get exactly the fields I wanted out of awscli
+Worked on finessing just the right combination of apt commands to get the desired state before chef ran (chef install was leaving apt in a dirty state)
+Spent extra time auto-generating key-pairs as I wasn't provided with a pem and didn't want to delay submitting my completed project any longer.
