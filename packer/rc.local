@@ -1,0 +1,5 @@
+#!/bin/bash
+
+cd /home/ubuntu/deploy/opseng-challenge-app
+gunicorn app:app --bind 0.0.0.0:8000
+
