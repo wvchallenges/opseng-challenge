@@ -1,7 +1,7 @@
 {
   "variables": {
-    "aws_access_key": "",
-    "aws_secret_key": ""
+    "aws_access_key": "{{env `TF_VAR_aws_access_key`}}",
+    "aws_secret_key": "{{env `TF_VAR_aws_secret_key`}}"
   },
   "builders": [{
     "type": "amazon-ebs",
@@ -19,6 +19,17 @@
     },
     "instance_type": "t2.micro",
     "ssh_username": "ubuntu",
-    "ami_name": "packer-example {{timestamp}}"
-  }]
+    "ami_name": "opseng-challenge-app {{timestamp}}"
+  }],
+  "provisioners": [
+    {
+      "type": "file",
+      "source": "./rc.local",
+      "destination": "/home/ubuntu/rc.local"
+    },
+    {
+      "type": "shell",
+      "script": "./provision.sh"
+    }
+  ]
 }
