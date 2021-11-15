@@ -1,6 +1,6 @@
 # Wave Operations Engineering Development Challenge
 
-Applicants for the [Operations Engineering team](https://wave.bamboohr.co.uk/jobs/) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. 
+Applicants for the [Operations Engineering team](https://jobs.lever.co/waveapps) at Wave must complete the following challenge, and submit a solution prior to the interviewing process. 
 
 The purpose of this exercise is to create something that we can discuss during the on-site interview, and that's representative of the kind of things we do here on a daily basis.
 
@@ -38,7 +38,7 @@ You should provide at least an executable bash script called `aws-app.sh`. You'r
 
 ## Evaluation
 
-We'll do the following, using on a stock OSX machine with Python 2.7.10 or higher (but <3.0), the `awscli` Python package installed, and appropriate AWS environment variables set:
+We'll do the following, using on a stock OSX machine with Python 3.9 or higher, the `awscli` Python package installed, and appropriate AWS environment variables set:
 ```
 $ git clone <your username>/<repo name>  # Or we'll apply your patch file to a checked-out branch
 $ cd <repo name>
